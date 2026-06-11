@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import type { AnalysisResult } from "@/lib/analysis/engine";
 import type { IndicesPayload } from "@/lib/market";
 import type {
   ChartResult,
@@ -100,6 +101,17 @@ export function useNews(query?: string) {
       get<NewsItem[]>(`/api/news${query ? `?q=${encodeURIComponent(query)}` : ""}`),
     refetchInterval: 5 * 60 * 1000,
     staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useAnalysis(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["analysis", symbol],
+    queryFn: () =>
+      get<AnalysisResult>(`/api/analysis/${encodeURIComponent(symbol!)}`),
+    enabled: !!symbol,
+    staleTime: 10 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
   });
 }
 

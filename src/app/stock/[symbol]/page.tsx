@@ -1,3 +1,4 @@
+import { AnalysisPanel } from "@/components/stock/AnalysisPanel";
 import { KeyStats } from "@/components/stock/KeyStats";
 import { PriceChart } from "@/components/stock/PriceChart";
 import { StockHeader } from "@/components/stock/StockHeader";
@@ -18,7 +19,10 @@ export default async function StockPage({
           <PriceChart symbol={symbol} />
           <StockNews symbol={symbol} />
         </div>
-        <KeyStats symbol={symbol} />
+        <div className="space-y-2">
+          <AnalysisPanel symbol={symbol} />
+          <KeyStats symbol={symbol} />
+        </div>
       </div>
     </div>
   );
