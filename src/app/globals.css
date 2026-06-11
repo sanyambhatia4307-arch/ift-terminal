@@ -1,0 +1,96 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root,
+.dark {
+  /* Institutional dark terminal palette */
+  --background: oklch(0.145 0.015 250);
+  --foreground: oklch(0.85 0.015 250);
+  --card: oklch(0.175 0.016 250);
+  --card-foreground: oklch(0.85 0.015 250);
+  --popover: oklch(0.19 0.016 250);
+  --popover-foreground: oklch(0.85 0.015 250);
+  --primary: oklch(0.78 0.14 75);
+  --primary-foreground: oklch(0.15 0.02 250);
+  --secondary: oklch(0.23 0.018 250);
+  --secondary-foreground: oklch(0.85 0.015 250);
+  --muted: oklch(0.22 0.016 250);
+  --muted-foreground: oklch(0.62 0.02 250);
+  --accent: oklch(0.24 0.02 250);
+  --accent-foreground: oklch(0.9 0.01 250);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.95 0 0);
+  --border: oklch(0.26 0.018 250);
+  --input: oklch(0.26 0.018 250);
+  --ring: oklch(0.78 0.14 75);
+  --radius: 0.25rem;
+
+  /* Market semantics */
+  --bull: oklch(0.74 0.17 160);
+  --bear: oklch(0.64 0.21 22);
+  --flat: oklch(0.62 0.02 250);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-bull: var(--bull);
+  --color-bear: var(--bear);
+  --color-flat: var(--flat);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "tnum" 1, "cv05" 1;
+}
+
+/* Dense scrollbars for terminal feel */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.3 0.02 250) transparent;
+}
+
+/* Numeric cells */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.text-bull { color: var(--bull); }
+.text-bear { color: var(--bear); }
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
