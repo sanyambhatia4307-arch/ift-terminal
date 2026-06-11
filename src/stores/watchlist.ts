@@ -10,7 +10,7 @@ interface WatchlistState {
   has: (symbol: string) => boolean;
 }
 
-const DEFAULT_WATCHLIST = ["RELIANCE", "HDFCBANK", "TCS", "INFY", "ICICIBANK", "TATAMOTORS"];
+const DEFAULT_WATCHLIST = ["RELIANCE", "HDFCBANK", "TCS", "INFY", "ICICIBANK", "SBIN"];
 
 export const useWatchlist = create<WatchlistState>()(
   persist(

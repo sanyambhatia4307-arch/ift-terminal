@@ -35,12 +35,12 @@ export function PriceChart({ symbol }: { symbol: string }) {
     const el = containerRef.current;
     if (!el || !data || data.candles.length === 0) return;
 
-    const styles = getComputedStyle(document.documentElement);
     const chart = createChart(el, {
       autoSize: true,
       layout: {
+        // lightweight-charts cannot parse oklch()/lab() CSS variables — hex only.
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: styles.getPropertyValue("--muted-foreground").trim() || "#8593a8",
+        textColor: "#8593a8",
         fontFamily: "var(--font-plex-mono), monospace",
         fontSize: 10,
         attributionLogo: false,
