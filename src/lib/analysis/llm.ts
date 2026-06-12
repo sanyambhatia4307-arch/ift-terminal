@@ -1,21 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { AnalysisFactor } from "@/lib/analysis/engine";
 import type { TechnicalIndicators } from "@/lib/analysis/technical";
-import type { SentimentResult } from "@/lib/analysis/sentiment";
 
 /**
  * Optional Claude-written analyst note. Activates only when
- * ANTHROPIC_API_KEY is set; the signal engine works fully without it.
+ * ANTHROPIC_API_KEY is set; the intelligence framework works fully without it.
  */
 
 interface NarrativeInput {
   symbol: string;
   name?: string;
-  verdict: string;
-  compositeScore: number;
-  factors: AnalysisFactor[];
+  overallScore: number;
+  stance: string;
+  pillars: Array<{ pillar: string; score: number; drivers: string[]; cautions: string[] }>;
   technicals: TechnicalIndicators;
-  sentiment: SentimentResult;
   headlines: string[];
 }
 
@@ -30,13 +27,9 @@ export async function generateNarrative(
 
     const context = {
       security: input.name ?? input.symbol,
-      engine_verdict: input.verdict,
-      composite_score: input.compositeScore.toFixed(2),
-      factors: input.factors.map((f) => ({
-        factor: f.name,
-        score: f.score.toFixed(2),
-        detail: f.detail,
-      })),
+      overall_score_0_100: input.overallScore,
+      derived_stance: input.stance,
+      pillars: input.pillars,
       technicals: {
         last: input.technicals.last,
         rsi14: input.technicals.rsi14?.toFixed(1),
@@ -53,9 +46,10 @@ export async function generateNarrative(
       max_tokens: 1024,
       system:
         "You are a senior Indian equity research analyst writing a terminal note. " +
-        "You are given a quantitative signal engine's output for an NSE-listed security. " +
-        "Write a tight 4-6 sentence analyst note: synthesize the technical picture, news flow, " +
-        "and street view; flag the biggest risk to the engine's verdict; mention concrete price levels. " +
+        "You are given a multi-pillar intelligence score (0-100) for an NSE-listed security. " +
+        "Write a tight 4-6 sentence analyst note: explain WHY the score is what it is by " +
+        "synthesizing the strongest and weakest pillars, flag the single biggest risk to the " +
+        "thesis, and mention concrete price levels. Never issue buy/sell commands — explain. " +
         "Plain text only, no markdown, no preamble, no disclaimers (the UI shows one).",
       messages: [
         { role: "user", content: JSON.stringify(context) },

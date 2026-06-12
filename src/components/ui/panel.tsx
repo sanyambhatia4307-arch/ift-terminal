@@ -21,7 +21,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "flex min-w-0 flex-col rounded-sm border border-border bg-card",
+        "panel-rise hover-glow flex min-w-0 flex-col rounded-sm border border-border bg-card",
         className
       )}
     >

@@ -94,3 +94,76 @@ body {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+
+/* ---- Motion system ---- */
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-rise {
+  animation: rise-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered entrance for stacked/gridded panels */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 50ms; }
+.stagger > *:nth-child(3) { animation-delay: 100ms; }
+.stagger > *:nth-child(4) { animation-delay: 150ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 250ms; }
+.stagger > *:nth-child(7) { animation-delay: 300ms; }
+.stagger > *:nth-child(8) { animation-delay: 350ms; }
+
+/* Live-data flash on value change */
+@keyframes flash-up {
+  0% { background-color: color-mix(in oklab, var(--bull) 35%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-down {
+  0% { background-color: color-mix(in oklab, var(--bear) 35%, transparent); }
+  100% { background-color: transparent; }
+}
+.flash-up { animation: flash-up 0.9s ease-out; }
+.flash-down { animation: flash-down 0.9s ease-out; }
+
+/* Subtle interactive lift without layout shift */
+.hover-glow {
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.hover-glow:hover {
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
+    0 4px 18px -8px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+
+/* Score ring sweep */
+@keyframes ring-sweep {
+  from { stroke-dashoffset: var(--ring-circ); }
+}
+.ring-sweep {
+  animation: ring-sweep 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Pillar bar grow */
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+}
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-rise,
+  .flash-up,
+  .flash-down,
+  .ring-sweep,
+  .bar-grow {
+    animation: none !important;
+  }
+  [style*="ticker-scroll"] {
+    animation: none !important;
+  }
+}

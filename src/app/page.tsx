@@ -29,18 +29,25 @@ export default function DashboardPage() {
           ) : null
         }
       />
-      <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-        <div className="space-y-2 xl:col-span-2">
+      <div className="grid grid-cols-1 items-stretch gap-2 xl:grid-cols-3">
+        <div className="stagger flex flex-col gap-2 xl:col-span-2">
           <IndicesGrid />
           <WatchlistStrip />
           <MoversPanel />
           <TopPicksPanel />
         </div>
-        <div className="space-y-2">
+        {/* Right rail stretches to match the left column; news absorbs the
+            remaining height so both rails end together. */}
+        <div className="stagger flex min-h-0 flex-col gap-2">
           <MarketPulse />
-          <NewsPanel count={8} title="Breaking · Market News" />
           <BreadthPanel />
           <SectorPerformance />
+          <NewsPanel
+            count={14}
+            title="Breaking · Market News"
+            className="min-h-[220px] flex-1"
+            scrollable
+          />
         </div>
       </div>
     </div>

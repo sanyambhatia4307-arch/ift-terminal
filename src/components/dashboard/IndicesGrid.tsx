@@ -1,5 +1,6 @@
 "use client";
 
+import { FlashValue } from "@/components/ui/flash";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIndices } from "@/hooks/queries";
@@ -34,7 +35,7 @@ export function IndicesGrid() {
             <div key={idx.symbol} className="bg-card px-2.5 py-2">
               <div className="truncate text-[11px] text-muted-foreground">{idx.name}</div>
               <div className="num mt-0.5 text-base font-medium leading-tight">
-                {fmt(idx.last)}
+                <FlashValue value={idx.last}>{fmt(idx.last)}</FlashValue>
               </div>
               <div className={cn("num text-xs", changeClass(idx.change))}>
                 {idx.change > 0 ? "+" : ""}

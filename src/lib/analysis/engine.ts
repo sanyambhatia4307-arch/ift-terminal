@@ -4,21 +4,43 @@ import { generateNarrative } from "@/lib/analysis/llm";
 import { getChart, getFundamentals, getNews } from "@/lib/market";
 import type { FundamentalsData, NewsItem } from "@/types/market";
 
-export type Verdict = "BUY" | "HOLD" | "SELL";
+/**
+ * Investment Intelligence Framework.
+ *
+ * No black-box Buy/Sell labels: each security is scored 0–100 across seven
+ * explainable pillars, every pillar lists the exact data points that drove
+ * it, and the overall score plus a derived stance roll up transparently.
+ */
 
-export interface AnalysisFactor {
+export type PillarKey =
+  | "valuation"
+  | "growth"
+  | "quality"
+  | "momentum"
+  | "strength"
+  | "sentiment"
+  | "risk";
+
+export interface PillarScore {
+  key: PillarKey;
   name: string;
-  score: number; // -1..1
+  /** 0–100. For `risk`, higher = MORE risk (UI inverts its color). */
+  score: number;
   weight: number;
-  detail: string;
+  drivers: string[];
+  cautions: string[];
+  available: boolean;
 }
 
 export interface AnalysisResult {
   symbol: string;
-  verdict: Verdict;
-  compositeScore: number; // -1..1
+  name?: string;
+  overallScore: number; // 0-100
+  stance: "Constructive" | "Balanced" | "Cautious";
   confidence: "low" | "medium" | "high";
-  factors: AnalysisFactor[];
+  pillars: PillarScore[];
+  drivers: string[]; // top cross-pillar positives
+  risks: string[]; // top cross-pillar negatives
   technicals: TechnicalIndicators;
   sentiment: SentimentResult;
   analyst: {
@@ -32,115 +54,196 @@ export interface AnalysisResult {
   generatedAt: number;
 }
 
-const clamp = (n: number, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, n));
+const clamp100 = (n: number) => Math.round(Math.max(0, Math.min(100, n)));
+const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
-function technicalFactors(t: TechnicalIndicators): AnalysisFactor[] {
-  const factors: AnalysisFactor[] = [];
+interface PillarBuild {
+  scores: number[];
+  drivers: string[];
+  cautions: string[];
+}
 
+function pillar(b: PillarBuild): { score: number; available: boolean } {
+  if (b.scores.length === 0) return { score: 50, available: false };
+  return {
+    score: clamp100(b.scores.reduce((a, x) => a + x, 0) / b.scores.length),
+    available: true,
+  };
+}
+
+function valuationPillar(f: FundamentalsData | null, last: number): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  if (f?.trailingPE != null && f.trailingPE > 0) {
+    const pe = f.trailingPE;
+    const s = pe < 15 ? 82 : pe < 22 ? 68 : pe < 32 ? 52 : pe < 45 ? 38 : 24;
+    b.scores.push(s);
+    (s >= 60 ? b.drivers : b.cautions).push(
+      `P/E ${pe.toFixed(1)}x — ${s >= 60 ? "reasonable vs broad-market norms" : "rich; growth must deliver"}`
+    );
+  }
+  if (f?.priceToBook != null && f.priceToBook > 0) {
+    const pb = f.priceToBook;
+    const s = pb < 2 ? 78 : pb < 4 ? 60 : pb < 8 ? 45 : 30;
+    b.scores.push(s);
+    (s >= 60 ? b.drivers : b.cautions).push(`P/B ${pb.toFixed(1)}x`);
+  }
+  if (f?.targetMeanPrice != null && last > 0) {
+    const upside = ((f.targetMeanPrice - last) / last) * 100;
+    const s = clamp100(50 + upside * 1.8);
+    b.scores.push(s);
+    (upside >= 0 ? b.drivers : b.cautions).push(
+      `Street target implies ${upside >= 0 ? "+" : ""}${upside.toFixed(1)}% vs price`
+    );
+  }
+  return { key: "valuation", name: "Valuation", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
+}
+
+function growthPillar(f: FundamentalsData | null): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  if (f?.revenueGrowth != null) {
+    const g = f.revenueGrowth;
+    const s = g > 0.18 ? 88 : g > 0.1 ? 72 : g > 0.04 ? 56 : g > 0 ? 44 : 22;
+    b.scores.push(s);
+    (s >= 56 ? b.drivers : b.cautions).push(`Revenue growth ${pct(g)} YoY`);
+  }
+  if (f?.earningsGrowth != null) {
+    const g = f.earningsGrowth;
+    const s = g > 0.2 ? 88 : g > 0.1 ? 72 : g > 0 ? 54 : 24;
+    b.scores.push(s);
+    (s >= 54 ? b.drivers : b.cautions).push(`Earnings growth ${pct(g)} YoY`);
+  }
+  return { key: "growth", name: "Growth", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
+}
+
+function qualityPillar(f: FundamentalsData | null): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  if (f?.returnOnEquity != null) {
+    const roe = f.returnOnEquity;
+    const s = roe > 0.2 ? 90 : roe > 0.14 ? 74 : roe > 0.08 ? 55 : roe > 0 ? 38 : 18;
+    b.scores.push(s);
+    (s >= 55 ? b.drivers : b.cautions).push(`ROE ${pct(roe)}`);
+  }
+  if (f?.profitMargin != null) {
+    const m = f.profitMargin;
+    const s = m > 0.18 ? 86 : m > 0.1 ? 70 : m > 0.04 ? 52 : m > 0 ? 38 : 15;
+    b.scores.push(s);
+    (s >= 52 ? b.drivers : b.cautions).push(`Net margin ${pct(m)}`);
+  }
+  if (f?.operatingMargin != null) {
+    const m = f.operatingMargin;
+    const s = m > 0.2 ? 84 : m > 0.12 ? 66 : m > 0.05 ? 50 : 32;
+    b.scores.push(s);
+    (s >= 50 ? b.drivers : b.cautions).push(`Operating margin ${pct(m)}`);
+  }
+  return { key: "quality", name: "Quality", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
+}
+
+function momentumPillar(t: TechnicalIndicators): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
   if (t.sma50 && t.sma200) {
     const above50 = t.last > t.sma50;
     const above200 = t.last > t.sma200;
     const golden = t.sma50 > t.sma200;
-    const score = clamp((above50 ? 0.4 : -0.4) + (above200 ? 0.3 : -0.3) + (golden ? 0.3 : -0.3));
-    factors.push({
-      name: "Trend (vs 50/200 DMA)",
-      score,
-      weight: 0.18,
-      detail: `Price ${above50 ? "above" : "below"} 50-DMA and ${above200 ? "above" : "below"} 200-DMA; ${golden ? "golden" : "death"}-cross regime.`,
-    });
+    const s = (above50 ? 30 : 8) + (above200 ? 25 : 8) + (golden ? 30 : 8);
+    b.scores.push(clamp100(s + 7));
+    (above50 && above200 ? b.drivers : b.cautions).push(
+      `Price ${above50 ? "above" : "below"} 50-DMA, ${above200 ? "above" : "below"} 200-DMA (${golden ? "golden" : "death"}-cross regime)`
+    );
   }
-
+  if (t.return3M !== undefined) {
+    const s = clamp100(50 + t.return3M * 2.2);
+    b.scores.push(s);
+    (t.return3M >= 0 ? b.drivers : b.cautions).push(
+      `3-month return ${t.return3M >= 0 ? "+" : ""}${t.return3M.toFixed(1)}%`
+    );
+  }
   if (t.rsi14 !== undefined) {
-    // Mean-reversion read: oversold is an opportunity, overbought a risk.
-    const score = t.rsi14 < 30 ? 0.8 : t.rsi14 < 40 ? 0.4 : t.rsi14 > 70 ? -0.8 : t.rsi14 > 60 ? -0.3 : 0.1;
-    factors.push({
-      name: "RSI (14)",
-      score,
-      weight: 0.1,
-      detail: `RSI at ${t.rsi14.toFixed(1)} — ${t.rsi14 < 30 ? "oversold" : t.rsi14 > 70 ? "overbought" : "neutral zone"}.`,
-    });
+    const r = t.rsi14;
+    const s = r >= 45 && r <= 65 ? 75 : r > 65 && r <= 72 ? 60 : r > 72 ? 40 : r >= 35 ? 55 : 35;
+    b.scores.push(s);
+    if (r > 72) b.cautions.push(`RSI ${r.toFixed(0)} — overbought, pullback risk`);
+    else if (r < 32) b.cautions.push(`RSI ${r.toFixed(0)} — heavily oversold (weak tape, possible bounce)`);
+    else b.drivers.push(`RSI ${r.toFixed(0)} — healthy zone`);
   }
-
-  if (t.macdHistogram !== undefined) {
-    const score = clamp(t.macdHistogram > 0 ? 0.5 : -0.5);
-    factors.push({
-      name: "MACD momentum",
-      score,
-      weight: 0.08,
-      detail: `MACD histogram is ${t.macdHistogram > 0 ? "positive (bullish momentum)" : "negative (bearish momentum)"}.`,
-    });
+  if (t.pctFrom52wHigh !== undefined && t.pctFrom52wHigh > -6) {
+    b.drivers.push("Trading within 6% of its 52-week high");
   }
-
-  if (t.return3M !== undefined && t.return1M !== undefined) {
-    const score = clamp((t.return3M / 20 + t.return1M / 10) / 2);
-    factors.push({
-      name: "Price momentum",
-      score,
-      weight: 0.09,
-      detail: `1M ${t.return1M >= 0 ? "+" : ""}${t.return1M.toFixed(1)}%, 3M ${t.return3M >= 0 ? "+" : ""}${t.return3M.toFixed(1)}%.`,
-    });
-  }
-
-  return factors;
+  return { key: "momentum", name: "Momentum", weight: 0.2, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
 
-function fundamentalFactor(f: FundamentalsData | null): AnalysisFactor | null {
-  if (!f) return null;
-  let score = 0;
-  const notes: string[] = [];
-  if (f.returnOnEquity !== undefined) {
-    score += f.returnOnEquity > 0.15 ? 0.4 : f.returnOnEquity > 0.08 ? 0.15 : -0.3;
-    notes.push(`ROE ${(f.returnOnEquity * 100).toFixed(1)}%`);
+function strengthPillar(f: FundamentalsData | null): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  if (f?.debtToEquity != null) {
+    const de = f.debtToEquity; // Yahoo reports in %
+    const s = de < 40 ? 88 : de < 90 ? 68 : de < 180 ? 46 : 24;
+    b.scores.push(s);
+    (s >= 60 ? b.drivers : b.cautions).push(`Debt/Equity ${(de / 100).toFixed(2)}x`);
   }
-  if (f.profitMargin !== undefined) {
-    score += f.profitMargin > 0.12 ? 0.3 : f.profitMargin > 0 ? 0.1 : -0.4;
-    notes.push(`net margin ${(f.profitMargin * 100).toFixed(1)}%`);
+  if (f?.totalCash != null && f?.totalDebt != null && f.totalDebt > 0) {
+    const ratio = f.totalCash / f.totalDebt;
+    const s = ratio > 1 ? 85 : ratio > 0.5 ? 65 : ratio > 0.2 ? 48 : 32;
+    b.scores.push(s);
+    (ratio > 0.5 ? b.drivers : b.cautions).push(
+      `Cash covers ${(ratio * 100).toFixed(0)}% of total debt`
+    );
   }
-  if (f.revenueGrowth !== undefined) {
-    score += f.revenueGrowth > 0.12 ? 0.3 : f.revenueGrowth > 0 ? 0.1 : -0.3;
-    notes.push(`revenue growth ${(f.revenueGrowth * 100).toFixed(1)}%`);
-  }
-  if (notes.length === 0) return null;
-  return {
-    name: "Fundamental quality",
-    score: clamp(score),
-    weight: 0.2,
-    detail: notes.join(", ") + ".",
-  };
+  return { key: "strength", name: "Fin. Strength", weight: 0.1, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
 
-function analystFactor(f: FundamentalsData | null, last: number): AnalysisFactor | null {
-  if (!f?.recommendationKey && !f?.targetMeanPrice) return null;
-  const recMap: Record<string, number> = {
-    strong_buy: 1, buy: 0.6, hold: 0, underperform: -0.6, sell: -1,
-  };
-  const rec = f.recommendationKey ? (recMap[f.recommendationKey] ?? 0) : 0;
-  const upside = f.targetMeanPrice ? ((f.targetMeanPrice - last) / last) * 100 : undefined;
-  const upsideScore = upside !== undefined ? clamp(upside / 25) : 0;
-  return {
-    name: "Street consensus",
-    score: clamp(rec * 0.6 + upsideScore * 0.4),
-    weight: 0.2,
-    detail: `${f.numberOfAnalysts ?? "—"} analysts, consensus ${f.recommendationKey?.replace(/_/g, " ") ?? "n/a"}${
-      upside !== undefined ? `, target implies ${upside >= 0 ? "+" : ""}${upside.toFixed(1)}% vs current price` : ""
-    }.`,
-  };
+function sentimentPillar(
+  s: SentimentResult,
+  f: FundamentalsData | null,
+  newsCount: number
+): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  if (newsCount > 0) {
+    const sc = clamp100(50 + s.score * 38);
+    b.scores.push(sc);
+    (s.score >= 0 ? b.drivers : b.cautions).push(
+      `${s.positive} bullish vs ${s.negative} bearish of ${newsCount} recent headlines`
+    );
+  }
+  if (f?.recommendationKey) {
+    const map: Record<string, number> = { strong_buy: 90, buy: 74, hold: 50, underperform: 30, sell: 15 };
+    const sc = map[f.recommendationKey] ?? 50;
+    b.scores.push(sc);
+    (sc >= 60 ? b.drivers : b.cautions).push(
+      `Analyst consensus: ${f.recommendationKey.replace(/_/g, " ")}${f.numberOfAnalysts ? ` (${f.numberOfAnalysts} analysts)` : ""}`
+    );
+  }
+  return { key: "sentiment", name: "Sentiment", weight: 0.1, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
 
-function rulesNarrative(
-  symbol: string,
-  verdict: Verdict,
-  factors: AnalysisFactor[],
-  t: TechnicalIndicators
-): string {
-  const sorted = [...factors].sort((a, b) => Math.abs(b.score * b.weight) - Math.abs(a.score * a.weight));
-  const drivers = sorted.slice(0, 3).map((f) => `${f.name.toLowerCase()} (${f.detail})`);
-  return (
-    `The signal engine rates ${symbol} a ${verdict}. ` +
-    `Primary drivers: ${drivers.join("; ")} ` +
-    `Key levels to watch: support near ₹${t.support?.toFixed(0)} and resistance near ₹${t.resistance?.toFixed(0)}. ` +
-    `Annualized volatility is ${t.annualizedVolatility?.toFixed(0)}%, so size positions accordingly.`
-  );
+function riskPillar(t: TechnicalIndicators, f: FundamentalsData | null): PillarScore {
+  const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  // Here drivers = risk factors (what makes it risky), cautions = mitigants.
+  if (t.annualizedVolatility !== undefined) {
+    const v = t.annualizedVolatility;
+    const s = v < 18 ? 25 : v < 28 ? 42 : v < 42 ? 62 : 82;
+    b.scores.push(s);
+    (s >= 50 ? b.drivers : b.cautions).push(
+      `Annualised volatility ${v.toFixed(0)}% — ${s >= 50 ? "elevated swings" : "relatively contained"}`
+    );
+  }
+  if (t.pctFrom52wHigh !== undefined && t.pctFrom52wHigh < -25) {
+    b.scores.push(70);
+    b.drivers.push(`Drawdown ${Math.abs(t.pctFrom52wHigh).toFixed(0)}% below its 52-week high`);
+  }
+  if (f?.beta != null) {
+    const s = f.beta > 1.4 ? 72 : f.beta > 1.1 ? 55 : 35;
+    b.scores.push(s);
+    (s >= 55 ? b.drivers : b.cautions).push(`Beta ${f.beta.toFixed(2)} vs market`);
+  }
+  if (f?.debtToEquity != null && f.debtToEquity > 180) {
+    b.scores.push(75);
+    b.drivers.push("Highly leveraged balance sheet");
+  }
+  if (f?.heldByInstitutions != null && f.heldByInstitutions > 0.45) {
+    b.drivers.push(
+      `High institutional concentration (${pct(f.heldByInstitutions)}) — crowded-exit risk`
+    );
+  }
+  return { key: "risk", name: "Risk", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
 
 export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
@@ -152,49 +255,57 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
   try {
     fundamentals = await getFundamentals(symbol);
   } catch {
-    // Indices and some securities have no fundamentals — degrade gracefully.
+    // Indices/ETFs may have no fundamentals — pillars degrade gracefully.
   }
 
   let news: NewsItem[] = [];
   try {
     news = (await getNews(`${fundamentals?.name ?? symbol} stock`)).slice(0, 25);
   } catch {
-    // News source down — sentiment factor is skipped.
+    // News source down — sentiment pillar marks itself unavailable.
   }
-
   const sentiment = scoreNewsSentiment(news);
 
-  const factors: AnalysisFactor[] = [...technicalFactors(technicals)];
-  const ff = fundamentalFactor(fundamentals);
-  if (ff) factors.push(ff);
-  const af = analystFactor(fundamentals, technicals.last);
-  if (af) factors.push(af);
-  if (news.length > 0) {
-    factors.push({
-      name: "News sentiment",
-      score: clamp(sentiment.score),
-      weight: 0.15,
-      detail: `${sentiment.positive} bullish vs ${sentiment.negative} bearish of ${news.length} recent headlines.`,
-    });
-  }
+  const pillars: PillarScore[] = [
+    valuationPillar(fundamentals, technicals.last),
+    growthPillar(fundamentals),
+    qualityPillar(fundamentals),
+    momentumPillar(technicals),
+    strengthPillar(fundamentals),
+    sentimentPillar(sentiment, fundamentals, news.length),
+    riskPillar(technicals, fundamentals),
+  ];
 
-  // Re-normalize weights over the factors that actually exist.
-  const totalWeight = factors.reduce((a, f) => a + f.weight, 0);
-  const compositeScore = clamp(
-    factors.reduce((a, f) => a + f.score * (f.weight / totalWeight), 0)
+  // Overall: weighted mean over available pillars; risk enters inverted.
+  const usable = pillars.filter((p) => p.available);
+  const totalWeight = usable.reduce((a, p) => a + p.weight, 0) || 1;
+  const overallScore = clamp100(
+    usable.reduce((a, p) => {
+      const effective = p.key === "risk" ? 100 - p.score : p.score;
+      return a + effective * (p.weight / totalWeight);
+    }, 0)
   );
 
-  const verdict: Verdict = compositeScore > 0.2 ? "BUY" : compositeScore < -0.2 ? "SELL" : "HOLD";
+  const stance: AnalysisResult["stance"] =
+    overallScore >= 68 ? "Constructive" : overallScore >= 45 ? "Balanced" : "Cautious";
 
-  // Confidence: strength of signal + agreement between factors.
-  const agreeing = factors.filter((f) => Math.sign(f.score) === Math.sign(compositeScore)).length;
-  const agreement = factors.length ? agreeing / factors.length : 0;
-  const confidence =
-    Math.abs(compositeScore) > 0.35 && agreement > 0.7
-      ? "high"
-      : Math.abs(compositeScore) > 0.15 && agreement > 0.5
-        ? "medium"
-        : "low";
+  const availableCount = usable.length;
+  const confidence: AnalysisResult["confidence"] =
+    availableCount >= 6 ? "high" : availableCount >= 4 ? "medium" : "low";
+
+  // Cross-pillar rollups, ranked by pillar weight × distance from neutral.
+  const rank = (p: PillarScore) => p.weight * Math.abs((p.key === "risk" ? 100 - p.score : p.score) - 50);
+  const sorted = [...usable].sort((a, b) => rank(b) - rank(a));
+  const drivers = sorted
+    .filter((p) => (p.key === "risk" ? 100 - p.score : p.score) >= 58)
+    .flatMap((p) => p.drivers.length ? [p.drivers[0]] : [])
+    .slice(0, 4);
+  const risks = [
+    ...pillars.find((p) => p.key === "risk")!.drivers,
+    ...sorted
+      .filter((p) => p.key !== "risk" && p.score < 45)
+      .flatMap((p) => (p.cautions.length ? [p.cautions[0]] : [])),
+  ].slice(0, 4);
 
   const upside = fundamentals?.targetMeanPrice
     ? ((fundamentals.targetMeanPrice - technicals.last) / technicals.last) * 100
@@ -203,20 +314,33 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
   const llmNote = await generateNarrative({
     symbol,
     name: fundamentals?.name,
-    verdict,
-    compositeScore,
-    factors,
+    overallScore,
+    stance,
+    pillars: pillars.map((p) => ({
+      pillar: p.name,
+      score: p.score,
+      drivers: p.drivers,
+      cautions: p.cautions,
+    })),
     technicals,
-    sentiment,
     headlines: news.slice(0, 8).map((n) => n.title),
   });
 
+  const rulesNarrative =
+    `${symbol} scores ${overallScore}/100 (${stance.toLowerCase()}). ` +
+    (drivers.length ? `Working in its favour: ${drivers.slice(0, 2).join("; ").toLowerCase()}. ` : "") +
+    (risks.length ? `Key risks: ${risks.slice(0, 2).join("; ").toLowerCase()}. ` : "") +
+    `Support near ₹${technicals.support?.toFixed(0)}, resistance near ₹${technicals.resistance?.toFixed(0)}.`;
+
   return {
     symbol,
-    verdict,
-    compositeScore,
+    name: fundamentals?.name,
+    overallScore,
+    stance,
     confidence,
-    factors,
+    pillars,
+    drivers,
+    risks,
     technicals,
     sentiment,
     analyst: {
@@ -225,7 +349,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
       upsidePercent: upside,
       numberOfAnalysts: fundamentals?.numberOfAnalysts,
     },
-    narrative: llmNote ?? rulesNarrative(symbol, verdict, factors, technicals),
+    narrative: llmNote ?? rulesNarrative,
     narrativeSource: llmNote ? "claude" : "rules",
     generatedAt: Date.now(),
   };

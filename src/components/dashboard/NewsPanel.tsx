@@ -10,11 +10,13 @@ export function NewsPanel({
   count = 10,
   title = "Market News",
   className,
+  scrollable = false,
 }: {
   query?: string;
   count?: number;
   title?: string;
   className?: string;
+  scrollable?: boolean;
 }) {
   const { data, isLoading } = useNews(query);
 
@@ -27,7 +29,13 @@ export function NewsPanel({
           ))}
         </div>
       ) : (
-        <div className="divide-y divide-border/60 overflow-y-auto">
+        <div
+          className={
+            scrollable
+              ? "h-full divide-y divide-border/60 overflow-y-auto"
+              : "divide-y divide-border/60 overflow-y-auto"
+          }
+        >
           {data?.slice(0, count).map((item) => (
             <a
               key={item.id}

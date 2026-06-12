@@ -13,7 +13,9 @@ const UA = { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" };
 /** Map an app symbol (NSE code like RELIANCE, or index key) to a Yahoo symbol. */
 export function toYahooSymbol(symbol: string): string {
   const s = symbol.toUpperCase();
-  if (s.startsWith("^") || s.includes(".")) return s;
+  // Already-Yahoo forms: indices (^), suffixed (.NS/.BO), futures (=F),
+  // FX (=X) and crypto pairs (-USD) pass through untouched.
+  if (s.startsWith("^") || s.includes(".") || s.includes("=") || s.endsWith("-USD")) return s;
   const indexMap: Record<string, string> = {
     "NIFTY 50": "^NSEI",
     "NIFTY BANK": "^NSEBANK",

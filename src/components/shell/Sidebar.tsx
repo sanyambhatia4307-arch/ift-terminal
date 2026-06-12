@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  BookOpen,
+  Coins,
   Crosshair,
   Globe2,
   LayoutDashboard,
@@ -17,8 +19,10 @@ const NAV = [
   { href: "/markets", label: "Markets", icon: Globe2 },
   { href: "/intraday", label: "Intraday", icon: Crosshair },
   { href: "/ipos", label: "IPOs", icon: Rocket },
+  { href: "/commodities", label: "Commodities", icon: Coins },
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks },
+  { href: "/guide", label: "Guide", icon: BookOpen },
 ];
 
 export function Sidebar() {
