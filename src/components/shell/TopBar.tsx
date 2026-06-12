@@ -33,7 +33,8 @@ export function TopBar() {
       <Link href="/" className="flex items-center gap-2">
         <Activity className="h-4 w-4 text-primary" />
         <span className="text-sm font-semibold tracking-wide">
-          IFT<span className="text-muted-foreground font-normal"> · Indian Financial Terminal</span>
+          <span className="text-gradient">IFT</span>
+          <span className="text-muted-foreground font-normal"> · Indian Financial Terminal</span>
         </span>
       </Link>
 

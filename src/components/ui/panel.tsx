@@ -1,9 +1,10 @@
+import { toneFor } from "@/lib/tones";
 import { cn } from "@/lib/utils";
 
 /**
  * Dense bordered panel — the terminal's basic layout unit.
- * `code` renders a Bloomberg-style function tag (e.g. IDX, MOVR) — part of
- * the terminal's visual signature.
+ * `code` renders a Bloomberg-style function tag and drives the panel's
+ * module hue (chip color + header accent line) via the tone system.
  */
 export function Panel({
   title,
@@ -18,17 +19,32 @@ export function Panel({
   className?: string;
   children: React.ReactNode;
 }) {
+  const tone = toneFor(code);
   return (
     <section
       className={cn(
-        "panel-rise hover-glow flex min-w-0 flex-col rounded-sm border border-border bg-card",
+        "panel-rise hover-glow relative flex min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card",
         className
       )}
     >
       {(title || right) && (
-        <header className="flex h-8 shrink-0 items-center gap-2 border-b border-border bg-secondary/30 px-2.5">
+        <header className="relative flex h-8 shrink-0 items-center gap-2 border-b border-border bg-secondary/30 px-2.5">
+          {/* Module accent hairline */}
+          <span
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-[2px]"
+            style={{
+              background: `linear-gradient(90deg, ${tone}, color-mix(in oklab, ${tone} 20%, transparent) 55%, transparent)`,
+            }}
+          />
           {code && (
-            <span className="num rounded-[2px] bg-primary/15 px-1 py-px text-[9px] font-semibold tracking-widest text-primary">
+            <span
+              className="num rounded-[2px] px-1 py-px text-[9px] font-semibold tracking-widest"
+              style={{
+                color: tone,
+                backgroundColor: `color-mix(in oklab, ${tone} 16%, transparent)`,
+              }}
+            >
               {code}
             </span>
           )}
