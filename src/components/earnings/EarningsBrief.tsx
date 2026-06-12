@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { formatDistanceToNowStrict } from "date-fns";
 import { Mic2 } from "lucide-react";
+import { ReactionStrip } from "@/components/earnings/ReactionStrip";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { EarningsBrief as EarningsBriefData } from "@/app/api/earnings-brief/route";
@@ -70,6 +71,9 @@ export function EarningsBriefBody({ symbol }: { symbol: string }) {
 
   return (
     <div className="border-l-2 border-primary/40 bg-background/40">
+      <div className="border-b border-border/60">
+        <ReactionStrip symbol={symbol} />
+      </div>
       <div className="grid grid-cols-1 gap-x-5 gap-y-3 p-3 lg:grid-cols-3">
         {sections.map(([title, summary, news]) => (
           <div key={title}>
@@ -135,6 +139,9 @@ export function ManagementCommentary({ symbol }: { symbol: string }) {
           <div className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-border/60 pt-1.5 md:grid-cols-2">
             <NewsLinks items={data.commentaryNews.slice(0, 4)} />
             <NewsLinks items={data.resultNews.slice(0, 4)} />
+          </div>
+          <div className="-mx-2.5 border-t border-border/60">
+            <ReactionStrip symbol={symbol} />
           </div>
         </div>
       )}

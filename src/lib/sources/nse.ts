@@ -206,6 +206,19 @@ export async function nseLargeDeals(): Promise<{ asOn: string; deals: LargeDeal[
   };
 }
 
+/** Historical board-meeting dates for financial results (newest first). */
+export async function nseResultsDates(symbol: string, limit = 9): Promise<Date[]> {
+  const rows = await nseJson<
+    Array<{ symbol: string; purpose: string; date: string }>
+  >(`/api/event-calendar?index=equities&symbol=${encodeURIComponent(symbol)}`);
+  return rows
+    .filter((r) => /financial results|results/i.test(r.purpose))
+    .map((r) => new Date(`${r.date} 12:00:00 GMT+0530`))
+    .filter((d) => !Number.isNaN(d.getTime()) && d.getTime() < Date.now())
+    .sort((a, b) => b.getTime() - a.getTime())
+    .slice(0, limit);
+}
+
 interface NseStockRow {
   symbol: string;
   lastPrice: number;

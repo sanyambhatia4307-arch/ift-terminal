@@ -192,6 +192,25 @@ export async function yahooSearch(q: string): Promise<SearchResult[]> {
   });
 }
 
+export interface EpsSurprise {
+  quarter: string;
+  epsActual?: number;
+  epsEstimate?: number;
+  surprisePercent?: number;
+}
+
+/** Last four quarters of EPS actual vs street estimate. */
+export async function yahooEarningsHistory(symbol: string): Promise<EpsSurprise[]> {
+  const ySym = toYahooSymbol(symbol);
+  const r = await yf.quoteSummary(ySym, { modules: ["earningsHistory"] });
+  return (r.earningsHistory?.history ?? []).map((h) => ({
+    quarter: h.quarter ? new Date(h.quarter).toISOString().slice(0, 10) : "—",
+    epsActual: h.epsActual ?? undefined,
+    epsEstimate: h.epsEstimate ?? undefined,
+    surprisePercent: h.surprisePercent != null ? h.surprisePercent * 100 : undefined,
+  }));
+}
+
 /** Next earnings window for a symbol (start/end can differ until confirmed). */
 export async function yahooEarningsDates(
   symbol: string
