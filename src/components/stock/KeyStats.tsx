@@ -74,11 +74,11 @@ function StatBlock({ title, items }: { title: string; items: Row[] }) {
   );
 }
 
-export function KeyStats({ symbol }: { symbol: string }) {
+export function KeyStats({ symbol, className }: { symbol: string; className?: string }) {
   const { data: f, isLoading, isError } = useFundamentals(symbol);
 
   return (
-    <Panel code="FUND" title="Fundamentals & Key Ratios" className="h-full">
+    <Panel code="FUND" title="Fundamentals & Key Ratios" className={className ?? "h-full"}>
       {isLoading ? (
         <Skeleton className="m-2 h-72" />
       ) : isError || !f ? (
@@ -98,6 +98,46 @@ export function KeyStats({ symbol }: { symbol: string }) {
             <StatBlock title="Balance Sheet" items={rows(f).balance} />
             <StatBlock title="Ownership & Street" items={rows(f).ownership} />
           </div>
+          {f.quarterlyResults && f.quarterlyResults.length > 0 && (
+            <div className="border-t border-border/60 pt-2">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-primary/80">
+                Results Trend · last {f.quarterlyResults.length} quarters
+              </div>
+              <table className="num w-full text-[11px]">
+                <thead>
+                  <tr className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                    <th className="pb-0.5 text-left font-medium">Quarter</th>
+                    <th className="pb-0.5 text-right font-medium">Revenue</th>
+                    <th className="pb-0.5 text-right font-medium">Net Profit</th>
+                    <th className="pb-0.5 text-right font-medium">Profit QoQ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {f.quarterlyResults.map((q, i, arr) => {
+                    const prev = arr[i - 1];
+                    const qoq =
+                      prev?.earnings && q.earnings !== undefined
+                        ? ((q.earnings - prev.earnings) / Math.abs(prev.earnings)) * 100
+                        : undefined;
+                    return (
+                      <tr key={q.period} className="border-t border-border/40">
+                        <td className="py-[3px]">{q.period}</td>
+                        <td className="py-[3px] text-right">{fmtInrCompact(q.revenue)}</td>
+                        <td className="py-[3px] text-right">{fmtInrCompact(q.earnings)}</td>
+                        <td
+                          className={`py-[3px] text-right ${
+                            qoq === undefined ? "text-muted-foreground" : qoq >= 0 ? "text-bull" : "text-bear"
+                          }`}
+                        >
+                          {qoq !== undefined ? fmtPct(qoq) : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
           {f.summary && (
             <p className="line-clamp-4 border-t border-border/60 pt-2 text-[11px] leading-relaxed text-muted-foreground">
               {f.summary}

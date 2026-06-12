@@ -16,17 +16,17 @@ const LEVEL_STYLES: Array<{
   color: string;
   style: LineStyle;
 }> = [
-  { key: "r3", title: "R3", color: "#e8484f", style: LineStyle.SparseDotted },
-  { key: "r2", title: "R2", color: "#e8484f", style: LineStyle.Dotted },
-  { key: "r1", title: "R1", color: "#e8484f", style: LineStyle.Dashed },
-  { key: "tc", title: "CPR TC", color: "#e0a93f", style: LineStyle.Solid },
-  { key: "pivot", title: "PIVOT", color: "#e0a93f", style: LineStyle.LargeDashed },
-  { key: "bc", title: "CPR BC", color: "#e0a93f", style: LineStyle.Solid },
-  { key: "s1", title: "S1", color: "#22c08a", style: LineStyle.Dashed },
-  { key: "s2", title: "S2", color: "#22c08a", style: LineStyle.Dotted },
-  { key: "s3", title: "S3", color: "#22c08a", style: LineStyle.SparseDotted },
-  { key: "orHigh", title: "OR-H", color: "#7aa2f7", style: LineStyle.Dotted },
-  { key: "orLow", title: "OR-L", color: "#7aa2f7", style: LineStyle.Dotted },
+  { key: "r3", title: "R3", color: "#dc3d43", style: LineStyle.SparseDotted },
+  { key: "r2", title: "R2", color: "#dc3d43", style: LineStyle.Dotted },
+  { key: "r1", title: "R1", color: "#dc3d43", style: LineStyle.Dashed },
+  { key: "tc", title: "CPR TC", color: "#b07d18", style: LineStyle.Solid },
+  { key: "pivot", title: "PIVOT", color: "#b07d18", style: LineStyle.LargeDashed },
+  { key: "bc", title: "CPR BC", color: "#b07d18", style: LineStyle.Solid },
+  { key: "s1", title: "S1", color: "#0e9f6e", style: LineStyle.Dashed },
+  { key: "s2", title: "S2", color: "#0e9f6e", style: LineStyle.Dotted },
+  { key: "s3", title: "S3", color: "#0e9f6e", style: LineStyle.SparseDotted },
+  { key: "orHigh", title: "OR-H", color: "#3b6fd4", style: LineStyle.Dotted },
+  { key: "orLow", title: "OR-L", color: "#3b6fd4", style: LineStyle.Dotted },
 ];
 
 const istTime = (time: number) =>
@@ -51,14 +51,14 @@ export function IntradayChart({ analysis }: { analysis: IntradayAnalysis }) {
       autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#8593a8",
+        textColor: "#5b6b82",
         fontFamily: "var(--font-plex-mono), monospace",
         fontSize: 10,
         attributionLogo: false,
       },
       grid: {
-        vertLines: { color: "rgba(120,130,150,0.06)" },
-        horzLines: { color: "rgba(120,130,150,0.06)" },
+        vertLines: { color: "rgba(100,116,139,0.12)" },
+        horzLines: { color: "rgba(100,116,139,0.12)" },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: {
@@ -70,11 +70,11 @@ export function IntradayChart({ analysis }: { analysis: IntradayAnalysis }) {
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#22c08a",
-      downColor: "#e8484f",
+      upColor: "#0e9f6e",
+      downColor: "#dc3d43",
       borderVisible: false,
-      wickUpColor: "#22c08a",
-      wickDownColor: "#e8484f",
+      wickUpColor: "#0e9f6e",
+      wickDownColor: "#dc3d43",
     });
     series.setData(
       analysis.candles.map((c) => ({

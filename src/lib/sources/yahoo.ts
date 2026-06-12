@@ -19,6 +19,24 @@ export function toYahooSymbol(symbol: string): string {
   const indexMap: Record<string, string> = {
     "NIFTY 50": "^NSEI",
     "NIFTY BANK": "^NSEBANK",
+    "NIFTY NEXT 50": "^NSMIDCP",
+    "NIFTY 100": "^CNX100",
+    "NIFTY 200": "^CNX200",
+    "NIFTY 500": "^CRSLDX",
+    "NIFTY MIDCAP 100": "NIFTY_MIDCAP_100.NS",
+    "NIFTY SMLCAP 100": "^CNXSC",
+    "NIFTY IT": "^CNXIT",
+    "NIFTY FIN SERVICE": "NIFTY_FIN_SERVICE.NS",
+    "NIFTY AUTO": "^CNXAUTO",
+    "NIFTY PHARMA": "^CNXPHARMA",
+    "NIFTY FMCG": "^CNXFMCG",
+    "NIFTY METAL": "^CNXMETAL",
+    "NIFTY REALTY": "^CNXREALTY",
+    "NIFTY ENERGY": "^CNXENERGY",
+    "NIFTY PSU BANK": "^CNXPSUBANK",
+    "NIFTY MEDIA": "^CNXMEDIA",
+    "NIFTY MIDCAP SELECT": "NIFTY_MID_SELECT.NS",
+    "INDIA VIX": "^INDIAVIX",
     SENSEX: "^BSESN",
   };
   return indexMap[s] ?? `${s}.NS`;
@@ -194,6 +212,7 @@ export async function yahooFundamentals(symbol: string): Promise<FundamentalsDat
       "defaultKeyStatistics",
       "financialData",
       "price",
+      "earnings",
     ],
   });
   const sd = r.summaryDetail;
@@ -236,5 +255,15 @@ export async function yahooFundamentals(symbol: string): Promise<FundamentalsDat
     targetMeanPrice: fd?.targetMeanPrice,
     recommendationKey: fd?.recommendationKey,
     numberOfAnalysts: fd?.numberOfAnalystOpinions,
+    quarterlyResults: r.earnings?.financialsChart?.quarterly?.map((q) => ({
+      period: String(q.date),
+      revenue: q.revenue ?? undefined,
+      earnings: q.earnings ?? undefined,
+    })),
+    yearlyResults: r.earnings?.financialsChart?.yearly?.map((y) => ({
+      period: String(y.date),
+      revenue: typeof y.revenue === "number" ? y.revenue : undefined,
+      earnings: typeof y.earnings === "number" ? y.earnings : undefined,
+    })),
   };
 }

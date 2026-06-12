@@ -2,8 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { EarningsBriefBody } from "@/components/earnings/EarningsBrief";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +44,7 @@ const weekKey = (iso: string) => {
 
 export default function EarningsPage() {
   const { data, isLoading } = useEarnings();
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const groups = (data ?? []).reduce<Record<string, EarningsEntry[]>>((acc, e) => {
     const k = weekKey(e.start);
@@ -76,36 +79,61 @@ export default function EarningsPage() {
           {Object.entries(groups).map(([group, entries]) => (
             <Panel key={group} code="EARN" title={`${group} (${entries.length})`}>
               <div className="flex items-center gap-2 border-b border-border bg-secondary/20 px-2.5 py-1 text-[9px] uppercase tracking-wider text-muted-foreground">
+                <span className="w-4" />
                 <span className="w-28">Symbol</span>
                 <span className="flex-1">Company · Sector</span>
                 <span className="w-56 text-right">Earnings Window (IST)</span>
                 <span className="w-24 text-right">Status</span>
+                <span className="w-20 text-right">Research</span>
               </div>
               <div className="divide-y divide-border/60">
-                {entries.map((e) => (
-                  <Link
-                    key={e.symbol}
-                    href={`/stock/${encodeURIComponent(e.symbol)}`}
-                    className="flex cursor-pointer items-center gap-2 px-2.5 py-1.5 text-[11px] transition-colors duration-150 hover:bg-accent/40"
-                  >
-                    <span className="num w-28 font-medium text-primary">{e.symbol}</span>
-                    <span className="flex-1 truncate text-muted-foreground">
-                      {e.name} · {e.sector}
-                    </span>
-                    <span className="num w-56 text-right">
-                      {fmtDate(e.start)}
-                      {e.end && e.end !== e.start && ` – ${fmtDate(e.end)}`}
-                    </span>
-                    <span
-                      className={cn(
-                        "w-24 text-right text-[10px] uppercase",
-                        e.confirmed ? "text-bull" : "text-muted-foreground"
-                      )}
-                    >
-                      {e.confirmed ? "Confirmed" : "Tentative"}
-                    </span>
-                  </Link>
-                ))}
+                {entries.map((e) => {
+                  const isOpen = expanded === e.symbol;
+                  return (
+                    <div key={e.symbol}>
+                      <button
+                        onClick={() => setExpanded(isOpen ? null : e.symbol)}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[11px] transition-colors duration-150 hover:bg-accent/40",
+                          isOpen && "bg-accent/40"
+                        )}
+                      >
+                        <ChevronRight
+                          className={cn(
+                            "h-3 w-3 shrink-0 text-muted-foreground transition-transform",
+                            isOpen && "rotate-90 text-primary"
+                          )}
+                        />
+                        <span className="num w-28 font-medium text-primary">{e.symbol}</span>
+                        <span className="flex-1 truncate text-muted-foreground">
+                          {e.name} · {e.sector}
+                        </span>
+                        <span className="num w-56 text-right">
+                          {fmtDate(e.start)}
+                          {e.end && e.end !== e.start && ` – ${fmtDate(e.end)}`}
+                        </span>
+                        <span
+                          className={cn(
+                            "w-24 text-right text-[10px] uppercase",
+                            e.confirmed ? "text-bull" : "text-muted-foreground"
+                          )}
+                        >
+                          {e.confirmed ? "Confirmed" : "Tentative"}
+                        </span>
+                        <span className="w-20 text-right">
+                          <Link
+                            href={`/stock/${encodeURIComponent(e.symbol)}`}
+                            onClick={(ev) => ev.stopPropagation()}
+                            className="text-[10px] text-primary hover:underline"
+                          >
+                            Open →
+                          </Link>
+                        </span>
+                      </button>
+                      {isOpen && <EarningsBriefBody symbol={e.symbol} />}
+                    </div>
+                  );
+                })}
               </div>
             </Panel>
           ))}

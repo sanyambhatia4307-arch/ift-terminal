@@ -16,6 +16,78 @@ interface NarrativeInput {
   headlines: string[];
 }
 
+export interface EarningsBriefSummary {
+  financials: string;
+  discussions: string;
+  managementCommentary: string;
+}
+
+/**
+ * Optional Claude synthesis of results coverage into a three-part brief.
+ * Returns null without ANTHROPIC_API_KEY or on any failure.
+ */
+export async function generateEarningsBrief(
+  company: string,
+  resultHeadlines: string[],
+  commentaryHeadlines: string[]
+): Promise<EarningsBriefSummary | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  if (resultHeadlines.length + commentaryHeadlines.length === 0) return null;
+  try {
+    const client = new Anthropic();
+    const model = process.env.ANALYSIS_MODEL ?? "claude-opus-4-8";
+    const response = await client.messages.create({
+      model,
+      max_tokens: 1200,
+      system:
+        "You are an equity research associate. From news headlines about an Indian company's " +
+        "latest quarterly results, produce a factual three-part brief. Only state what the " +
+        "headlines support; if coverage is thin, say so plainly. No advice, no markdown.",
+      messages: [
+        {
+          role: "user",
+          content: JSON.stringify({
+            company,
+            results_coverage: resultHeadlines,
+            management_commentary_coverage: commentaryHeadlines,
+          }),
+        },
+      ],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              financials: {
+                type: "string",
+                description: "2-3 sentences: revenue/profit/margin picture from the latest reported quarter",
+              },
+              discussions: {
+                type: "string",
+                description: "2-3 sentences: other material points in the results — segments, one-offs, dividends, orders, outlook",
+              },
+              managementCommentary: {
+                type: "string",
+                description: "2-3 sentences: what top executives emphasised while announcing results — guidance, tone, strategic priorities",
+              },
+            },
+            required: ["financials", "discussions", "managementCommentary"],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+    const text = response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("");
+    return JSON.parse(text) as EarningsBriefSummary;
+  } catch {
+    return null;
+  }
+}
+
 export async function generateNarrative(
   input: NarrativeInput
 ): Promise<string | null> {

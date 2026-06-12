@@ -23,9 +23,10 @@ export function Panel({
   return (
     <section
       className={cn(
-        "panel-rise hover-glow relative flex min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card",
+        "panel-rise hover-glow tone-scope relative flex min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card",
         className
       )}
+      style={{ "--tone": tone } as React.CSSProperties}
     >
       {(title || right) && (
         <header className="relative flex h-8 shrink-0 items-center gap-2 border-b border-border bg-secondary/30 px-2.5">

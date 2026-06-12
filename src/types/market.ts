@@ -135,4 +135,6 @@ export interface FundamentalsData {
   targetMeanPrice?: number;
   recommendationKey?: string;
   numberOfAnalysts?: number;
+  quarterlyResults?: Array<{ period: string; revenue?: number; earnings?: number }>;
+  yearlyResults?: Array<{ period: string; revenue?: number; earnings?: number }>;
 }
