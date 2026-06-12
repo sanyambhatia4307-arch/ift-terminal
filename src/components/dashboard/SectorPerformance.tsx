@@ -14,7 +14,7 @@ import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIndices } from "@/hooks/queries";
 
-export function SectorPerformance() {
+export function SectorPerformance({ className }: { className?: string }) {
   const { data, isLoading } = useIndices();
 
   const rows = (data?.sectors ?? [])
@@ -25,11 +25,11 @@ export function SectorPerformance() {
     .sort((a, b) => b.change - a.change);
 
   return (
-    <Panel code="SECT" title="Sector Performance (1D)" className="h-full">
+    <Panel code="SECT" title="Sector Performance (1D)" className={className ?? "h-full"}>
       {isLoading ? (
         <Skeleton className="m-2 h-64" />
       ) : (
-        <div className="h-[280px] p-2">
+        <div className="h-full min-h-[280px] p-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
               <XAxis

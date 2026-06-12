@@ -5,7 +5,6 @@ import { BreadthPanel } from "@/components/dashboard/BreadthPanel";
 import { IndicesGrid } from "@/components/dashboard/IndicesGrid";
 import { MarketPulse } from "@/components/dashboard/MarketPulse";
 import { MoversPanel } from "@/components/dashboard/MoversPanel";
-import { NewsPanel } from "@/components/dashboard/NewsPanel";
 import { SectorPerformance } from "@/components/dashboard/SectorPerformance";
 import { TopPicksPanel } from "@/components/dashboard/TopPicksPanel";
 import { WatchlistStrip } from "@/components/dashboard/WatchlistStrip";
@@ -36,18 +35,12 @@ export default function DashboardPage() {
           <MoversPanel />
           <TopPicksPanel />
         </div>
-        {/* Right rail stretches to match the left column; news absorbs the
-            remaining height so both rails end together. */}
+        {/* Right rail stretches to match the left column; the sector chart
+            absorbs the remaining height so both rails end together. */}
         <div className="stagger flex min-h-0 flex-col gap-2">
           <MarketPulse />
           <BreadthPanel />
-          <SectorPerformance />
-          <NewsPanel
-            count={14}
-            title="Breaking · Market News"
-            className="min-h-[220px] flex-1"
-            scrollable
-          />
+          <SectorPerformance className="min-h-[320px] flex-1" />
         </div>
       </div>
     </div>
