@@ -1,0 +1,91 @@
+"use client";
+
+import {
+  CandlestickSeries,
+  ColorType,
+  createChart,
+  LineStyle,
+  type UTCTimestamp,
+} from "lightweight-charts";
+import { useEffect, useRef } from "react";
+import type { IntradayAnalysis } from "@/lib/analysis/intraday-types";
+
+const LEVEL_STYLES: Array<{
+  key: keyof IntradayAnalysis["levels"];
+  title: string;
+  color: string;
+  style: LineStyle;
+}> = [
+  { key: "r3", title: "R3", color: "#e8484f", style: LineStyle.SparseDotted },
+  { key: "r2", title: "R2", color: "#e8484f", style: LineStyle.Dotted },
+  { key: "r1", title: "R1", color: "#e8484f", style: LineStyle.Dashed },
+  { key: "tc", title: "CPR TC", color: "#e0a93f", style: LineStyle.Solid },
+  { key: "pivot", title: "PIVOT", color: "#e0a93f", style: LineStyle.LargeDashed },
+  { key: "bc", title: "CPR BC", color: "#e0a93f", style: LineStyle.Solid },
+  { key: "s1", title: "S1", color: "#22c08a", style: LineStyle.Dashed },
+  { key: "s2", title: "S2", color: "#22c08a", style: LineStyle.Dotted },
+  { key: "s3", title: "S3", color: "#22c08a", style: LineStyle.SparseDotted },
+  { key: "orHigh", title: "OR-H", color: "#7aa2f7", style: LineStyle.Dotted },
+  { key: "orLow", title: "OR-L", color: "#7aa2f7", style: LineStyle.Dotted },
+];
+
+export function IntradayChart({ analysis }: { analysis: IntradayAnalysis }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || analysis.candles.length === 0) return;
+
+    const chart = createChart(el, {
+      autoSize: true,
+      layout: {
+        background: { type: ColorType.Solid, color: "transparent" },
+        textColor: "#8593a8",
+        fontFamily: "var(--font-plex-mono), monospace",
+        fontSize: 10,
+        attributionLogo: false,
+      },
+      grid: {
+        vertLines: { color: "rgba(120,130,150,0.06)" },
+        horzLines: { color: "rgba(120,130,150,0.06)" },
+      },
+      rightPriceScale: { borderVisible: false },
+      timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false },
+    });
+
+    const series = chart.addSeries(CandlestickSeries, {
+      upColor: "#22c08a",
+      downColor: "#e8484f",
+      borderVisible: false,
+      wickUpColor: "#22c08a",
+      wickDownColor: "#e8484f",
+    });
+    series.setData(
+      analysis.candles.map((c) => ({
+        time: c.time as UTCTimestamp,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+      }))
+    );
+
+    for (const lvl of LEVEL_STYLES) {
+      const price = analysis.levels[lvl.key];
+      if (price === undefined) continue;
+      series.createPriceLine({
+        price,
+        color: lvl.color,
+        lineWidth: 1,
+        lineStyle: lvl.style,
+        axisLabelVisible: true,
+        title: lvl.title,
+      });
+    }
+
+    chart.timeScale().fitContent();
+    return () => chart.remove();
+  }, [analysis]);
+
+  return <div ref={containerRef} className="h-[440px] w-full" />;
+}

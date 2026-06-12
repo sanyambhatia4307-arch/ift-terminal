@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Crosshair,
   Globe2,
   LayoutDashboard,
   ListChecks,
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/markets", label: "Markets", icon: Globe2 },
+  { href: "/intraday", label: "Intraday", icon: Crosshair },
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks },
 ];

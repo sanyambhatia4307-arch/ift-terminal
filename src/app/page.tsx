@@ -3,6 +3,7 @@ import { IndicesGrid } from "@/components/dashboard/IndicesGrid";
 import { MoversPanel } from "@/components/dashboard/MoversPanel";
 import { NewsPanel } from "@/components/dashboard/NewsPanel";
 import { SectorPerformance } from "@/components/dashboard/SectorPerformance";
+import { TopPicksPanel } from "@/components/dashboard/TopPicksPanel";
 import { WatchlistStrip } from "@/components/dashboard/WatchlistStrip";
 
 export default function DashboardPage() {
@@ -12,6 +13,7 @@ export default function DashboardPage() {
         <IndicesGrid />
         <WatchlistStrip />
         <MoversPanel />
+        <TopPicksPanel />
         <BreadthPanel />
       </div>
       <div className="space-y-2">
