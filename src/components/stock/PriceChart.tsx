@@ -35,8 +35,19 @@ export function PriceChart({ symbol }: { symbol: string }) {
     const el = containerRef.current;
     if (!el || !data || data.candles.length === 0) return;
 
+    const istTime = (t: number) =>
+      new Date(t * 1000).toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    const intradayInterval = interval !== "1d" && interval !== "1wk" && interval !== "1mo";
     const chart = createChart(el, {
       autoSize: true,
+      localization: intradayInterval
+        ? { timeFormatter: (t: number) => `${istTime(t)} IST` }
+        : {},
       layout: {
         // lightweight-charts cannot parse oklch()/lab() CSS variables — hex only.
         background: { type: ColorType.Solid, color: "transparent" },
@@ -50,7 +61,13 @@ export function PriceChart({ symbol }: { symbol: string }) {
         horzLines: { color: "rgba(120,130,150,0.08)" },
       },
       rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false, timeVisible: interval !== "1d" },
+      timeScale: {
+        borderVisible: false,
+        timeVisible: intradayInterval,
+        ...(intradayInterval
+          ? { tickMarkFormatter: (t: number) => istTime(t) }
+          : {}),
+      },
       crosshair: { mode: 0 },
     });
     chartRef.current = chart;

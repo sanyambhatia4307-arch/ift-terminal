@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   ListChecks,
   Newspaper,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +16,7 @@ const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/markets", label: "Markets", icon: Globe2 },
   { href: "/intraday", label: "Intraday", icon: Crosshair },
+  { href: "/ipos", label: "IPOs", icon: Rocket },
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks },
 ];

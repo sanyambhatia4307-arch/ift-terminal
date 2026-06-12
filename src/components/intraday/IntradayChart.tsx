@@ -29,6 +29,14 @@ const LEVEL_STYLES: Array<{
   { key: "orLow", title: "OR-L", color: "#7aa2f7", style: LineStyle.Dotted },
 ];
 
+const istTime = (time: number) =>
+  new Date(time * 1000).toLocaleTimeString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
 export function IntradayChart({ analysis }: { analysis: IntradayAnalysis }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +45,9 @@ export function IntradayChart({ analysis }: { analysis: IntradayAnalysis }) {
     if (!el || analysis.candles.length === 0) return;
 
     const chart = createChart(el, {
+      localization: {
+        timeFormatter: (t: number) => `${istTime(t)} IST`,
+      },
       autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
@@ -50,7 +61,12 @@ export function IntradayChart({ analysis }: { analysis: IntradayAnalysis }) {
         horzLines: { color: "rgba(120,130,150,0.06)" },
       },
       rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false },
+      timeScale: {
+        borderVisible: false,
+        timeVisible: true,
+        secondsVisible: false,
+        tickMarkFormatter: (t: number) => istTime(t),
+      },
     });
 
     const series = chart.addSeries(CandlestickSeries, {

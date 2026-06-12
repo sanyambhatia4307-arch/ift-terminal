@@ -135,6 +135,27 @@ export async function nseMarketStatus(): Promise<MarketStatusInfo> {
   };
 }
 
+export interface FiiDiiFlow {
+  category: string; // "FII/FPI" | "DII"
+  date: string;
+  buyValue: number;
+  sellValue: number;
+  netValue: number; // ₹ crore
+}
+
+export async function nseFiiDii(): Promise<FiiDiiFlow[]> {
+  const rows = await nseJson<
+    Array<{ category: string; date: string; buyValue: string; sellValue: string; netValue: string }>
+  >("/api/fiidiiTradeReact");
+  return rows.map((r) => ({
+    category: r.category,
+    date: r.date,
+    buyValue: parseFloat(r.buyValue),
+    sellValue: parseFloat(r.sellValue),
+    netValue: parseFloat(r.netValue),
+  }));
+}
+
 interface NseStockRow {
   symbol: string;
   lastPrice: number;
