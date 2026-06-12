@@ -2,10 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Globe2 } from "lucide-react";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { MoversPanel } from "@/components/dashboard/MoversPanel";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { SectorPerformance } from "@/components/dashboard/SectorPerformance";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -123,6 +124,7 @@ function AllIndicesTable() {
 
   return (
     <Panel
+      code="ALLX"
       title={`All Indices (${data?.all.length ?? 0})`}
       right={
         <span className="text-[10px] text-muted-foreground">
@@ -206,6 +208,12 @@ function AllIndicesTable() {
 export default function MarketsPage() {
   return (
     <div className="space-y-2 p-2">
+      <PageHeader
+        icon={Globe2}
+        code="MKT"
+        title="Markets"
+        subtitle="All indices · movers · sector performance · constituents"
+      />
       <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
         <div className="xl:col-span-2">
           <MoversPanel count={8} />

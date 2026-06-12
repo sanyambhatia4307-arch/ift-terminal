@@ -78,7 +78,7 @@ export function KeyStats({ symbol }: { symbol: string }) {
   const { data: f, isLoading, isError } = useFundamentals(symbol);
 
   return (
-    <Panel title="Fundamentals & Key Ratios" className="h-full">
+    <Panel code="FUND" title="Fundamentals & Key Ratios" className="h-full">
       {isLoading ? (
         <Skeleton className="m-2 h-72" />
       ) : isError || !f ? (

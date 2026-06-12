@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { formatDistanceToNowStrict } from "date-fns";
 import { AlertOctagon, Rocket } from "lucide-react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ const GAIN_LABEL = {
 function IpoCard({ ipo }: { ipo: IpoWithNews }) {
   return (
     <Panel
+      code="IPO"
       title={
         <span className="normal-case">
           {ipo.company}
@@ -139,15 +141,19 @@ export default function IposPage() {
 
   return (
     <div className="space-y-2 p-2">
-      <div className="flex items-center gap-2">
-        <Rocket className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold">IPO Intelligence · Indian Pipeline</span>
-        {data && (
-          <span className="num ml-auto text-[10px] text-muted-foreground">
-            Dossiers reviewed {data.asOf} · news live (10m refresh)
-          </span>
-        )}
-      </div>
+      <PageHeader
+        icon={Rocket}
+        code="IPO"
+        title="IPO Intelligence"
+        subtitle="Indian pipeline · valuations · DRHP risk flags · live news"
+        right={
+          data ? (
+            <span className="num text-[10px] text-muted-foreground">
+              Dossiers reviewed {data.asOf} · news live (10m refresh)
+            </span>
+          ) : null
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-2">

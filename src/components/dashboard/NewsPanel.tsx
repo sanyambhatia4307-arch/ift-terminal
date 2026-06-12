@@ -19,7 +19,7 @@ export function NewsPanel({
   const { data, isLoading } = useNews(query);
 
   return (
-    <Panel title={title} className={className}>
+    <Panel code="NEWS" title={title} className={className}>
       {isLoading ? (
         <div className="space-y-2 p-2.5">
           {Array.from({ length: 5 }).map((_, i) => (

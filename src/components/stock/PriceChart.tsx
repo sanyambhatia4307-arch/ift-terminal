@@ -117,6 +117,7 @@ export function PriceChart({ symbol }: { symbol: string }) {
 
   return (
     <Panel
+      code="CHRT"
       title="Price & Volume"
       right={
         <div className="flex gap-0.5">

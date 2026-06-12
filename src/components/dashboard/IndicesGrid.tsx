@@ -11,6 +11,7 @@ export function IndicesGrid() {
 
   return (
     <Panel
+      code="IDX"
       title="Major Indices"
       right={
         dataUpdatedAt ? (

@@ -1,8 +1,9 @@
 "use client";
 
 import { formatDistanceToNowStrict } from "date-fns";
-import { Search } from "lucide-react";
+import { Newspaper, Search } from "lucide-react";
 import { useState } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +26,12 @@ export default function NewsPage() {
 
   return (
     <div className="space-y-2 p-2">
+      <PageHeader
+        icon={Newspaper}
+        code="NWS"
+        title="News Wire"
+        subtitle="Aggregated Indian market coverage · refreshes every 5 min"
+      />
       <div className="flex flex-wrap items-center gap-2">
         {TOPICS.map((t, i) => (
           <button
@@ -60,7 +67,7 @@ export default function NewsPage() {
         </form>
       </div>
 
-      <Panel title={activeSearch ? `News · "${activeSearch}"` : `News · ${TOPICS[topic].label}`}>
+      <Panel code="NEWS" title={activeSearch ? `News · "${activeSearch}"` : `News · ${TOPICS[topic].label}`}>
         {isLoading ? (
           <div className="space-y-2 p-3">
             {Array.from({ length: 10 }).map((_, i) => (

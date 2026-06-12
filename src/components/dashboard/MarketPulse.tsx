@@ -28,6 +28,7 @@ export function MarketPulse() {
 
   return (
     <Panel
+      code="PULS"
       title={
         <span className="flex items-center gap-1.5">
           <Radio className="h-3 w-3 text-primary" /> Market Pulse · Today
@@ -69,33 +70,45 @@ export function MarketPulse() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-            {GROUP_ORDER.flatMap((group) =>
-              p.global
-                .filter((g) => g.group === group)
-                .map((g) => (
-                  <div key={g.symbol} className="flex items-baseline justify-between text-[11px]">
-                    <span className="truncate text-muted-foreground">{g.label}</span>
-                    <span className="num ml-2 shrink-0">
-                      {fmt(g.last)}{" "}
-                      <span className={changeClass(g.changePercent)}>
-                        {fmtPct(g.changePercent)}
-                      </span>
-                    </span>
+          <div className="space-y-1.5">
+            {GROUP_ORDER.map((group) => {
+              const items = p.global.filter((g) => g.group === group);
+              if (items.length === 0) return null;
+              return (
+                <div key={group}>
+                  <div className="mb-0.5 text-[9px] font-semibold uppercase tracking-widest text-primary/70">
+                    {group}
                   </div>
-                ))
-            )}
-            {p.vix && (
-              <div className="flex items-baseline justify-between text-[11px]">
-                <span className="text-muted-foreground">India VIX</span>
-                <span className="num ml-2">
-                  {fmt(p.vix.last)}{" "}
-                  <span className={changeClass(p.vix.changePercent)}>
-                    {fmtPct(p.vix.changePercent)}
-                  </span>
-                </span>
-              </div>
-            )}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                    {items.map((g) => (
+                      <div
+                        key={g.symbol}
+                        className="flex items-baseline justify-between text-[11px]"
+                      >
+                        <span className="truncate text-muted-foreground">{g.label}</span>
+                        <span className="num ml-2 shrink-0">
+                          {fmt(g.last)}{" "}
+                          <span className={changeClass(g.changePercent)}>
+                            {fmtPct(g.changePercent)}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                    {group === "FX & Rates" && p.vix && (
+                      <div className="flex items-baseline justify-between text-[11px]">
+                        <span className="text-muted-foreground">India VIX</span>
+                        <span className="num ml-2">
+                          {fmt(p.vix.last)}{" "}
+                          <span className={changeClass(p.vix.changePercent)}>
+                            {fmtPct(p.vix.changePercent)}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {p.flows && p.flows.length > 0 && (

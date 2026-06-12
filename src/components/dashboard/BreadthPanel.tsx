@@ -11,7 +11,7 @@ export function BreadthPanel() {
   const total = adv + dec + unch || 1;
 
   return (
-    <Panel title={`Market Breadth · ${data?.index ?? "NIFTY 50"}`}>
+    <Panel code="BRDT" title={`Market Breadth · ${data?.index ?? "NIFTY 50"}`}>
       <div className="space-y-2 p-2.5">
         <div className="flex h-2 overflow-hidden rounded-full bg-muted">
           <div className="bg-bull" style={{ width: `${(adv / total) * 100}%` }} />

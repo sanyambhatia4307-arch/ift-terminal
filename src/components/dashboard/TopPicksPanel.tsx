@@ -27,6 +27,7 @@ export function TopPicksPanel() {
 
   return (
     <Panel
+      code="PICK"
       title={
         <span className="flex items-center gap-1.5">
           <TrendingUp className="h-3 w-3 text-primary" /> Top Picks · Technical Scan
@@ -44,12 +45,19 @@ export function TopPicksPanel() {
         </div>
       ) : (
         <>
+          <div className="flex items-center gap-3 border-b border-border bg-secondary/20 px-2.5 py-1 text-[9px] uppercase tracking-wider text-muted-foreground">
+            <span className="w-4 shrink-0">#</span>
+            <span className="w-40 shrink-0">Stock · Sector</span>
+            <span className="shrink-0">Score</span>
+            <span className="flex-1">Signal</span>
+            <span className="shrink-0 text-right">LTP / 3M</span>
+          </div>
           <div className="divide-y divide-border/60">
             {data?.map((p, i) => (
               <Link
                 key={p.symbol}
                 href={`/stock/${encodeURIComponent(p.symbol)}`}
-                className="flex items-center gap-3 px-2.5 py-1.5 transition-colors hover:bg-accent/40"
+                className="flex cursor-pointer items-center gap-3 px-2.5 py-1.5 transition-colors duration-150 hover:bg-accent/40"
               >
                 <span className="num w-4 shrink-0 text-[10px] text-muted-foreground">
                   {i + 1}

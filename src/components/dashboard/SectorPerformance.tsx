@@ -25,7 +25,7 @@ export function SectorPerformance() {
     .sort((a, b) => b.change - a.change);
 
   return (
-    <Panel title="Sector Performance (1D)" className="h-full">
+    <Panel code="SECT" title="Sector Performance (1D)" className="h-full">
       {isLoading ? (
         <Skeleton className="m-2 h-64" />
       ) : (

@@ -5,6 +5,7 @@ import axios from "axios";
 import { Crosshair } from "lucide-react";
 import { useState } from "react";
 import { IntradayChart } from "@/components/intraday/IntradayChart";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TRADEABLE_INDICES, type IntradayAnalysis } from "@/lib/analysis/intraday-types";
@@ -50,7 +51,7 @@ function LevelsTable({ a }: { a: IntradayAnalysis }) {
     ["S3", a.levels.s3, "text-bull"],
   ];
   return (
-    <Panel title="Key Levels (from prior session)">
+    <Panel code="LVLS" title="Key Levels (from prior session)">
       <div className="p-2">
         {a.levels.orHigh !== undefined && (
           <div className="num mb-1.5 flex justify-between border-b border-border/60 pb-1.5 text-[11px]">
@@ -88,7 +89,7 @@ function LevelsTable({ a }: { a: IntradayAnalysis }) {
 function TradePlanCard({ a }: { a: IntradayAnalysis }) {
   const p = a.plan;
   return (
-    <Panel title="Trade Plan">
+    <Panel code="PLAN" title="Trade Plan">
       <div className="space-y-2.5 p-2.5">
         <div className="flex items-center gap-2">
           <span
@@ -175,10 +176,31 @@ export default function IntradayPage() {
 
   return (
     <div className="space-y-2 p-2">
+      <PageHeader
+        icon={Crosshair}
+        code="INTR"
+        title="Intraday · Index Derivatives"
+        subtitle="Pivot / CPR / opening-range levels with a rule-based trade plan"
+        right={
+          a ? (
+            <div className="num flex items-center gap-3 text-sm">
+              <span className="font-medium">{fmt(a.last)}</span>
+              <span className={changeClass(a.changePercent)}>{fmtPct(a.changePercent)}</span>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px]",
+                  a.marketOpen ? "bg-bull/15 text-bull" : "bg-muted text-muted-foreground"
+                )}
+              >
+                {a.marketOpen ? "LIVE" : "LAST SESSION"}
+              </span>
+            </div>
+          ) : null
+        }
+      />
       <div className="flex flex-wrap items-center gap-2">
-        <Crosshair className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold">Intraday · Index Derivatives</span>
-        <div className="ml-2 flex flex-wrap gap-1">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Instrument</span>
+        <div className="flex flex-wrap gap-1">
           {TRADEABLE_INDICES.map((idx) => (
             <button
               key={idx.key}
@@ -194,20 +216,6 @@ export default function IntradayPage() {
             </button>
           ))}
         </div>
-        {a && (
-          <div className="num ml-auto flex items-center gap-3 text-sm">
-            <span className="font-medium">{fmt(a.last)}</span>
-            <span className={changeClass(a.changePercent)}>{fmtPct(a.changePercent)}</span>
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[10px]",
-                a.marketOpen ? "bg-bull/15 text-bull" : "bg-muted text-muted-foreground"
-              )}
-            >
-              {a.marketOpen ? "LIVE" : "LAST SESSION"}
-            </span>
-          </div>
-        )}
       </div>
 
       {isLoading || !a ? (
@@ -218,6 +226,7 @@ export default function IntradayPage() {
       ) : (
         <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
           <Panel
+            code="CHRT"
             title={`${a.label} · 5-minute chart with levels`}
             className="xl:col-span-2"
             right={

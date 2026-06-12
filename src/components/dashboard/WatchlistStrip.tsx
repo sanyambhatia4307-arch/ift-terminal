@@ -12,6 +12,7 @@ export function WatchlistStrip() {
 
   return (
     <Panel
+      code="WL"
       title="Watchlist"
       right={
         <Link href="/watchlist" className="text-[10px] text-primary hover:underline">

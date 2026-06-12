@@ -1,7 +1,8 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { ListChecks, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,8 +24,15 @@ export default function WatchlistPage() {
   const { data: quotes, isLoading, dataUpdatedAt } = useQuotes(symbols);
 
   return (
-    <div className="p-2">
+    <div className="space-y-2 p-2">
+      <PageHeader
+        icon={ListChecks}
+        code="WLST"
+        title="Watchlist"
+        subtitle="Live quotes for your tracked securities · 45s refresh"
+      />
       <Panel
+        code="WL"
         title={`Watchlist (${symbols.length})`}
         right={
           dataUpdatedAt ? (
