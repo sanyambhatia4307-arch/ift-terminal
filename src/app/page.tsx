@@ -38,9 +38,9 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-2">
           <MarketPulse />
+          <NewsPanel count={8} title="Breaking · Market News" />
           <BreadthPanel />
           <SectorPerformance />
-          <NewsPanel count={10} title="Breaking · Market News" />
         </div>
       </div>
     </div>
