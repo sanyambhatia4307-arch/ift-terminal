@@ -2,8 +2,11 @@
 
 import {
   BookOpen,
+  Briefcase,
+  CalendarClock,
   Coins,
   Crosshair,
+  GitCompareArrows,
   Globe2,
   LayoutDashboard,
   ListChecks,
@@ -18,10 +21,13 @@ const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/markets", label: "Markets", icon: Globe2 },
   { href: "/intraday", label: "Intraday", icon: Crosshair },
+  { href: "/earnings", label: "Earnings", icon: CalendarClock },
+  { href: "/compare", label: "Compare", icon: GitCompareArrows },
   { href: "/ipos", label: "IPOs", icon: Rocket },
   { href: "/commodities", label: "Commodities", icon: Coins },
-  { href: "/news", label: "News", icon: Newspaper },
+  { href: "/portfolio", label: "Portfolio", icon: Briefcase },
   { href: "/watchlist", label: "Watchlist", icon: ListChecks },
+  { href: "/news", label: "News", icon: Newspaper },
   { href: "/guide", label: "Guide", icon: BookOpen },
 ];
 

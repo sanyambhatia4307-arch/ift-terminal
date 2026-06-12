@@ -156,6 +156,56 @@ export async function nseFiiDii(): Promise<FiiDiiFlow[]> {
   }));
 }
 
+export interface LargeDeal {
+  type: "BULK" | "BLOCK" | "SHORT";
+  symbol: string;
+  name: string;
+  clientName: string;
+  buySell: "BUY" | "SELL";
+  qty: number;
+  price: number; // weighted avg trade price
+  date: string;
+}
+
+interface NseDealRow {
+  buySell: string;
+  clientName: string;
+  date: string;
+  name: string;
+  qty: string;
+  symbol: string;
+  watp: string;
+}
+
+export async function nseLargeDeals(): Promise<{ asOn: string; deals: LargeDeal[] }> {
+  const data = await nseJson<{
+    as_on_date: string;
+    BULK_DEALS_DATA?: NseDealRow[];
+    BLOCK_DEALS_DATA?: NseDealRow[];
+    SHORT_DEALS_DATA?: NseDealRow[];
+  }>("/api/snapshot-capital-market-largedeal");
+
+  const map = (rows: NseDealRow[] | undefined, type: LargeDeal["type"]): LargeDeal[] =>
+    (rows ?? []).map((r) => ({
+      type,
+      symbol: r.symbol,
+      name: r.name,
+      clientName: r.clientName,
+      buySell: r.buySell === "BUY" ? "BUY" : "SELL",
+      qty: parseInt(r.qty) || 0,
+      price: parseFloat(r.watp) || 0,
+      date: r.date,
+    }));
+
+  return {
+    asOn: data.as_on_date,
+    deals: [
+      ...map(data.BLOCK_DEALS_DATA, "BLOCK"),
+      ...map(data.BULK_DEALS_DATA, "BULK"),
+    ].sort((a, b) => b.qty * b.price - a.qty * a.price),
+  };
+}
+
 interface NseStockRow {
   symbol: string;
   lastPrice: number;

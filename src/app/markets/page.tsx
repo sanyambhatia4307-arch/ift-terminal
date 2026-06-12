@@ -6,6 +6,7 @@ import { ChevronRight, Globe2 } from "lucide-react";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { MoversPanel } from "@/components/dashboard/MoversPanel";
+import { DealsPanel } from "@/components/markets/DealsPanel";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { SectorPerformance } from "@/components/dashboard/SectorPerformance";
 import { Panel } from "@/components/ui/panel";
@@ -220,6 +221,7 @@ export default function MarketsPage() {
         </div>
         <SectorPerformance />
       </div>
+      <DealsPanel />
       <AllIndicesTable />
     </div>
   );

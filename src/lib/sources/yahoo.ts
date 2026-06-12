@@ -174,6 +174,17 @@ export async function yahooSearch(q: string): Promise<SearchResult[]> {
   });
 }
 
+/** Next earnings window for a symbol (start/end can differ until confirmed). */
+export async function yahooEarningsDates(
+  symbol: string
+): Promise<{ start?: Date; end?: Date } | null> {
+  const ySym = toYahooSymbol(symbol);
+  const r = await yf.quoteSummary(ySym, { modules: ["calendarEvents"] });
+  const dates = r.calendarEvents?.earnings?.earningsDate;
+  if (!dates || dates.length === 0) return null;
+  return { start: dates[0], end: dates[dates.length - 1] };
+}
+
 export async function yahooFundamentals(symbol: string): Promise<FundamentalsData> {
   const ySym = toYahooSymbol(symbol);
   const r = await yf.quoteSummary(ySym, {
