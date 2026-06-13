@@ -7,6 +7,7 @@ import type { IndicesPayload } from "@/lib/market";
 import type { ScreenerPayload } from "@/lib/screener";
 import type {
   ChartResult,
+  FinancialsData,
   FundamentalsData,
   MarketStatusInfo,
   MoversResult,
@@ -92,6 +93,15 @@ export function useFundamentals(symbol: string | undefined) {
       get<FundamentalsData>(`/api/fundamentals/${encodeURIComponent(symbol!)}`),
     enabled: !!symbol,
     staleTime: 60 * 60 * 1000,
+  });
+}
+
+export function useFinancials(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["financials", symbol],
+    queryFn: () => get<FinancialsData>(`/api/financials/${encodeURIComponent(symbol!)}`),
+    enabled: !!symbol,
+    staleTime: 12 * 60 * 60 * 1000,
   });
 }
 

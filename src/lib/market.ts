@@ -8,6 +8,7 @@ import {
 } from "@/lib/sources/nse";
 import {
   yahooChart,
+  yahooFinancials,
   yahooFundamentals,
   yahooQuoteLite,
   yahooQuotes,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/sources/yahoo";
 import type {
   ChartResult,
+  FinancialsData,
   FundamentalsData,
   IndexQuote,
   MarketStatusInfo,
@@ -203,6 +205,12 @@ export function getQuotes(symbols: string[]): Promise<StockQuote[]> {
 export function getFundamentals(symbol: string): Promise<FundamentalsData> {
   return cached(`fundamentals:${symbol}`, 6 * 60 * 60 * 1000, () =>
     yahooFundamentals(symbol)
+  );
+}
+
+export function getFinancials(symbol: string): Promise<FinancialsData> {
+  return cached(`financials:${symbol}`, 24 * 60 * 60 * 1000, () =>
+    yahooFinancials(symbol)
   );
 }
 

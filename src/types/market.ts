@@ -100,6 +100,37 @@ export interface SearchResult {
   type: string;
 }
 
+export interface FinancialYear {
+  fy: string; // e.g. "FY26"
+  date: string;
+  revenue?: number;
+  ebit?: number;
+  netIncome?: number;
+  grossProfit?: number;
+  totalAssets?: number;
+  currentLiabilities?: number;
+  equity?: number;
+  totalDebt?: number;
+  operatingCashFlow?: number;
+  capex?: number;
+  fcf?: number;
+  // derived
+  roce?: number; // %
+  netMargin?: number; // %
+  ebitMargin?: number; // %
+  cashConversion?: number; // FCF / net income, %
+}
+
+export interface FinancialsData {
+  symbol: string;
+  years: FinancialYear[]; // chronological (oldest first)
+  revenueCagr?: number; // % over the available window
+  earningsCagr?: number; // %
+  latestRoce?: number;
+  latestFcf?: number;
+  latestCashConversion?: number;
+}
+
 export interface FundamentalsData {
   symbol: string;
   name?: string;

@@ -368,11 +368,12 @@ export function PriceChart({ symbol }: { symbol: string }) {
 
               <p className="text-[9px] leading-snug text-muted-foreground">
                 {forecast.source === "ensemble"
-                  ? "Projection blends two AI models with the detected pattern."
+                  ? "Scenario blends two AI models with the detected pattern."
                   : forecast.source === "free"
-                    ? "Projection from a single AI model (paid budget spent)."
-                    : "Projection from a momentum model (AI unavailable)."}{" "}
-                Targets are a horizon view for orientation, not a guarantee. Not investment advice.
+                    ? "Scenario from a single AI model (paid budget spent)."
+                    : "Scenario from a momentum model (AI unavailable)."}{" "}
+                These are scenario ranges, not price targets or a forecast · they show how the move could
+                play out if conditions hold. Not investment advice.
               </p>
             </div>
           )}
@@ -400,7 +401,7 @@ function Target({
   const color = tone === "bull" ? "text-bull" : tone === "bear" ? "text-bear" : "text-primary";
   return (
     <div>
-      <div className="text-[8.5px] uppercase tracking-wider text-muted-foreground">{label} target</div>
+      <div className="text-[8.5px] uppercase tracking-wider text-muted-foreground">{label} case</div>
       <div className={cn("text-[13px] font-semibold", color)}>₹{fmt(price)}</div>
       <div className={cn("text-[9px]", color)}>
         {pct >= 0 ? "+" : ""}

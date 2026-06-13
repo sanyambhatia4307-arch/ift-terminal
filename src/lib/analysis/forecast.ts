@@ -120,12 +120,14 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
 
   const months = Math.round((horizonDays / 21) * 10) / 10;
   const dir = basePct >= 0 ? "+" : "";
+  const engine =
+    source === "ensemble" ? "two AI models" : source === "free" ? "one AI model" : "a momentum model";
   const summary =
-    `${source === "ensemble" ? "Both AI models" : source === "free" ? "The AI model" : "A momentum model"} ` +
-    `project about ${dir}${basePct.toFixed(1)}% over the next ~${months} months, a base target near ` +
-    `₹${baseTarget.toFixed(0)}. Bull case ₹${bullTarget.toFixed(0)} (+${bullPct.toFixed(1)}%), bear case ` +
-    `₹${bearTarget.toFixed(0)} (${bearPct.toFixed(1)}%).` +
-    (shape ? ` Chart shape: ${shape.shape}. ${shape.expectation}` : "");
+    `Scenario range, not a forecast. If the current trend and news flow hold, a base case sits near ` +
+    `₹${baseTarget.toFixed(0)} (${dir}${basePct.toFixed(1)}%) over ~${months} months, bracketed by a bull case ` +
+    `₹${bullTarget.toFixed(0)} (+${bullPct.toFixed(1)}%) and a bear case ₹${bearTarget.toFixed(0)} (${bearPct.toFixed(1)}%). ` +
+    `Derived from ${engine} blended with the chart pattern.` +
+    (shape ? ` Pattern: ${shape.shape}; ${shape.expectation}` : "");
 
   return {
     symbol,

@@ -1,6 +1,8 @@
 import YahooFinance from "yahoo-finance2";
 import type {
   ChartResult,
+  FinancialsData,
+  FinancialYear,
   FundamentalsData,
   SearchResult,
   StockQuote,
@@ -220,6 +222,81 @@ export async function yahooEarningsDates(
   const dates = r.calendarEvents?.earnings?.earningsDate;
   if (!dates || dates.length === 0) return null;
   return { start: dates[0], end: dates[dates.length - 1] };
+}
+
+/**
+ * Multi-year financial statements via fundamentalsTimeSeries (the legacy
+ * *History submodules return almost nothing for NSE names since late 2024).
+ * Derives ROCE, EBIT margin, FCF and cash conversion the framework needs.
+ */
+export async function yahooFinancials(symbol: string): Promise<FinancialsData> {
+  const ySym = toYahooSymbol(symbol);
+  const since = new Date();
+  since.setFullYear(since.getFullYear() - 6);
+  const rows = (await yf.fundamentalsTimeSeries(ySym, {
+    period1: since.toISOString().slice(0, 10),
+    type: "annual",
+    module: "all",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any)) as Array<Record<string, any>>;
+
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+  const pctOf = (a?: number, b?: number) => (a != null && b != null && b !== 0 ? (a / b) * 100 : undefined);
+
+  const years: FinancialYear[] = (rows ?? [])
+    .filter((r) => num(r.totalRevenue) != null && r.date)
+    .map((r) => {
+      const date = new Date(r.date).toISOString().slice(0, 10);
+      const y = new Date(r.date).getUTCFullYear();
+      const revenue = num(r.totalRevenue);
+      const ebit = num(r.EBIT) ?? num(r.operatingIncome);
+      const netIncome = num(r.netIncome) ?? num(r.netIncomeCommonStockholders);
+      const totalAssets = num(r.totalAssets);
+      const currentLiabilities = num(r.currentLiabilities);
+      const fcf = num(r.freeCashFlow) ?? (num(r.operatingCashFlow) != null && num(r.capitalExpenditure) != null
+        ? (num(r.operatingCashFlow) as number) + (num(r.capitalExpenditure) as number) // capex is negative
+        : undefined);
+      const capEmployed =
+        totalAssets != null && currentLiabilities != null ? totalAssets - currentLiabilities : undefined;
+      return {
+        fy: `FY${String(y).slice(2)}`,
+        date,
+        revenue,
+        ebit,
+        netIncome,
+        grossProfit: num(r.grossProfit),
+        totalAssets,
+        currentLiabilities,
+        equity: num(r.stockholdersEquity) ?? num(r.commonStockEquity),
+        totalDebt: num(r.totalDebt),
+        operatingCashFlow: num(r.operatingCashFlow),
+        capex: num(r.capitalExpenditure),
+        fcf,
+        roce: pctOf(ebit, capEmployed),
+        netMargin: pctOf(netIncome, revenue),
+        ebitMargin: pctOf(ebit, revenue),
+        cashConversion: pctOf(fcf, netIncome),
+      } satisfies FinancialYear;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const cagr = (pick: (y: FinancialYear) => number | undefined) => {
+    const series = years.map(pick).filter((x): x is number => x != null && x > 0);
+    if (series.length < 2) return undefined;
+    const yrs = series.length - 1;
+    return (Math.pow(series[series.length - 1] / series[0], 1 / yrs) - 1) * 100;
+  };
+
+  const latest = years[years.length - 1];
+  return {
+    symbol,
+    years,
+    revenueCagr: cagr((y) => y.revenue),
+    earningsCagr: cagr((y) => y.netIncome),
+    latestRoce: latest?.roce,
+    latestFcf: latest?.fcf,
+    latestCashConversion: latest?.cashConversion,
+  };
 }
 
 export async function yahooFundamentals(symbol: string): Promise<FundamentalsData> {

@@ -2,9 +2,9 @@ import { getAiAnalysis, type AiAnalysis } from "@/lib/analysis/ai";
 import type { EnsembleModelView } from "@/lib/analysis/llm";
 import { computeIndicators, type TechnicalIndicators } from "@/lib/analysis/technical";
 import { scoreNewsSentiment, type SentimentResult } from "@/lib/analysis/sentiment";
-import { getChart, getFundamentals, getNews } from "@/lib/market";
+import { getChart, getFinancials, getFundamentals, getNews } from "@/lib/market";
 import { getSectorMedians, type SectorMedians } from "@/lib/screener";
-import type { FundamentalsData, NewsItem } from "@/types/market";
+import type { FinancialsData, FundamentalsData, NewsItem } from "@/types/market";
 
 /**
  * Investment Intelligence Framework.
@@ -157,8 +157,21 @@ function growthPillar(f: FundamentalsData | null): PillarScore {
   return { key: "growth", name: "Growth", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
 
-function qualityPillar(f: FundamentalsData | null): PillarScore {
+function qualityPillar(f: FundamentalsData | null, fin?: FinancialsData | null): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+  // ROCE leads quality for Indian equities (capital-efficiency, debt-adjusted).
+  if (fin?.latestRoce != null) {
+    const r = fin.latestRoce;
+    const s = r > 20 ? 90 : r > 15 ? 76 : r > 12 ? 58 : r > 8 ? 42 : 22;
+    b.scores.push(s);
+    (s >= 58 ? b.drivers : b.cautions).push(`ROCE ${r.toFixed(1)}% (capital efficiency)`);
+  }
+  if (fin?.latestCashConversion != null) {
+    const c = fin.latestCashConversion;
+    const s = c > 80 ? 84 : c > 50 ? 66 : c > 0 ? 48 : 28;
+    b.scores.push(s);
+    (s >= 60 ? b.drivers : b.cautions).push(`Cash conversion ${c.toFixed(0)}% (FCF / PAT)`);
+  }
   if (f?.returnOnEquity != null) {
     const roe = f.returnOnEquity;
     const s = roe > 0.2 ? 90 : roe > 0.14 ? 74 : roe > 0.08 ? 55 : roe > 0 ? 38 : 18;
@@ -325,10 +338,13 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     secMed = medians?.[fundamentals.sector] ?? null;
   }
 
+  // Multi-year financials for ROCE / cash conversion · best-effort.
+  const financials = await getFinancials(symbol).catch(() => null);
+
   const pillars: PillarScore[] = [
     valuationPillar(fundamentals, technicals.last, secMed),
     growthPillar(fundamentals),
-    qualityPillar(fundamentals),
+    qualityPillar(fundamentals, financials),
     momentumPillar(technicals),
     strengthPillar(fundamentals),
     sentimentPillar(sentiment, fundamentals, news.length, ai),
