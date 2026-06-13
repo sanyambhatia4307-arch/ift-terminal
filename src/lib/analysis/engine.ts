@@ -1,6 +1,10 @@
 import { computeIndicators, type TechnicalIndicators } from "@/lib/analysis/technical";
 import { scoreNewsSentiment, type SentimentResult } from "@/lib/analysis/sentiment";
-import { generateNarrative } from "@/lib/analysis/llm";
+import {
+  cachedLlmSentiment,
+  generateNarrative,
+  type LlmSentiment,
+} from "@/lib/analysis/llm";
 import { getChart, getFundamentals, getNews } from "@/lib/market";
 import type { FundamentalsData, NewsItem } from "@/types/market";
 
@@ -50,7 +54,8 @@ export interface AnalysisResult {
     numberOfAnalysts?: number;
   };
   narrative: string;
-  narrativeSource: "claude" | "rules";
+  narrativeSource: "ai" | "rules";
+  sentimentSource: "ai" | "lexicon";
   generatedAt: number;
 }
 
@@ -193,10 +198,18 @@ function strengthPillar(f: FundamentalsData | null): PillarScore {
 function sentimentPillar(
   s: SentimentResult,
   f: FundamentalsData | null,
-  newsCount: number
+  newsCount: number,
+  llm: LlmSentiment | null
 ): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
-  if (newsCount > 0) {
+  if (llm) {
+    // NLP read of the headlines — materiality-weighted, preferred over lexicon.
+    const sc = clamp100(50 + llm.score * 38);
+    b.scores.push(sc);
+    (llm.score >= 0 ? b.drivers : b.cautions).push(`AI news read: ${llm.rationale}`);
+    for (const p of llm.positives.slice(0, 2)) b.drivers.push(p);
+    for (const n of llm.negatives.slice(0, 2)) b.cautions.push(n);
+  } else if (newsCount > 0) {
     const sc = clamp100(50 + s.score * 38);
     b.scores.push(sc);
     (s.score >= 0 ? b.drivers : b.cautions).push(
@@ -265,6 +278,11 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     // News source down — sentiment pillar marks itself unavailable.
   }
   const sentiment = scoreNewsSentiment(news);
+  const llmSent = await cachedLlmSentiment(
+    symbol,
+    fundamentals?.name ?? symbol,
+    news.map((n) => n.title)
+  ).catch(() => null);
 
   const pillars: PillarScore[] = [
     valuationPillar(fundamentals, technicals.last),
@@ -272,7 +290,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     qualityPillar(fundamentals),
     momentumPillar(technicals),
     strengthPillar(fundamentals),
-    sentimentPillar(sentiment, fundamentals, news.length),
+    sentimentPillar(sentiment, fundamentals, news.length, llmSent),
     riskPillar(technicals, fundamentals),
   ];
 
@@ -350,7 +368,8 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
       numberOfAnalysts: fundamentals?.numberOfAnalysts,
     },
     narrative: llmNote ?? rulesNarrative,
-    narrativeSource: llmNote ? "claude" : "rules",
+    narrativeSource: llmNote ? "ai" : "rules",
+    sentimentSource: llmSent ? "ai" : "lexicon",
     generatedAt: Date.now(),
   };
 }

@@ -1,3 +1,4 @@
+import { cachedLlmSentiment } from "@/lib/analysis/llm";
 import { computeIndicators } from "@/lib/analysis/technical";
 import { scoreNewsSentiment } from "@/lib/analysis/sentiment";
 import { getChart, getFundamentals, getNews } from "@/lib/market";
@@ -65,7 +66,14 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
   }
   try {
     const news = (await getNews(`${name ?? symbol} stock`)).slice(0, 25);
-    sentimentScore = scoreNewsSentiment(news).score;
+    // Prefer the AI materiality-weighted read (shared cache with the
+    // Intelligence Score); fall back to the keyword lexicon.
+    const llm = await cachedLlmSentiment(
+      symbol,
+      name ?? symbol,
+      news.map((n) => n.title)
+    ).catch(() => null);
+    sentimentScore = llm?.score ?? scoreNewsSentiment(news).score;
   } catch {
     // news down — purely technical projection
   }

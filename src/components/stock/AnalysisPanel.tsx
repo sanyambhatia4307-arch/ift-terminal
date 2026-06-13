@@ -94,7 +94,8 @@ export function AnalysisPanel({ symbol }: { symbol: string }) {
         a ? (
           <span className="num text-[10px] text-muted-foreground">
             {formatDistanceToNowStrict(a.generatedAt)} ago ·{" "}
-            {a.narrativeSource === "claude" ? "AI note" : "quant"}
+            {a.narrativeSource === "ai" ? "AI note" : "quant"}
+            {a.sentimentSource === "ai" ? " · AI sentiment" : ""}
           </span>
         ) : null
       }

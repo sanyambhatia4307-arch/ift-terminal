@@ -1,47 +1,78 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { cached } from "@/lib/cache";
 import type { TechnicalIndicators } from "@/lib/analysis/technical";
 
 /**
- * Optional LLM layer for analyst notes and earnings briefs.
+ * LLM layer with a two-tier OpenRouter setup:
  *
- * Provider selection (first key found wins):
- *   1. DEEPSEEK_API_KEY  — OpenAI-compatible endpoint (model: DEEPSEEK_MODEL,
- *      default "deepseek-chat"; base: DEEPSEEK_BASE_URL)
- *   2. ANTHROPIC_API_KEY — Claude via the official SDK (model: ANALYSIS_MODEL)
+ *   FREE tier  (OPENROUTER_FREE_MODEL, $0)   — earnings briefs, headline
+ *              sentiment NLP. Used liberally; no daily cap.
+ *   PAID tier  (OPENROUTER_PAID_MODEL)       — only the Intelligence Score
+ *              narrative, guarded by LLM_PAID_DAILY_TOKENS. When the daily
+ *              budget is exhausted the call silently downgrades to FREE.
  *
- * With neither key set every feature degrades to its deterministic fallback.
+ * Fallback chain per call: OpenRouter → DeepSeek direct → Anthropic → null
+ * (deterministic non-LLM output). All providers are optional.
  */
 
-const NARRATIVE_SYSTEM =
-  "You are a senior Indian equity research analyst writing a terminal note. " +
-  "You are given a multi-pillar intelligence score (0-100) for an NSE-listed security. " +
-  "Write a tight 4-6 sentence analyst note: explain WHY the score is what it is by " +
-  "synthesizing the strongest and weakest pillars, flag the single biggest risk to the " +
-  "thesis, and mention concrete price levels. Never issue buy/sell commands — explain. " +
-  "Plain text only, no markdown, no preamble, no disclaimers (the UI shows one).";
+/* ---- Paid-tier daily budget (IST day, in-memory per server process) ---- */
 
-const BRIEF_SYSTEM =
-  "You are an equity research associate. From news headlines about an Indian company's " +
-  "latest quarterly results, produce a factual three-part brief. Only state what the " +
-  "headlines support; if coverage is thin, say so plainly. No advice, no markdown.";
+const paidBudget = { day: "", tokensUsed: 0 };
 
-/* ---- DeepSeek (OpenAI-compatible) ---- */
+function istDay(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
 
-async function deepseekChat(
+function paidDailyLimit(): number {
+  return parseInt(process.env.LLM_PAID_DAILY_TOKENS ?? "1000000");
+}
+
+function paidBudgetAvailable(): boolean {
+  const today = istDay();
+  if (paidBudget.day !== today) {
+    paidBudget.day = today;
+    paidBudget.tokensUsed = 0;
+  }
+  return paidBudget.tokensUsed < paidDailyLimit();
+}
+
+function recordPaidUsage(tokens: number) {
+  paidBudget.tokensUsed += tokens;
+}
+
+export function getPaidBudgetStatus() {
+  paidBudgetAvailable(); // roll the day if needed
+  return { day: paidBudget.day, tokensUsed: paidBudget.tokensUsed, limit: paidDailyLimit() };
+}
+
+/* ---- OpenRouter client ---- */
+
+type Tier = "free" | "paid";
+
+async function openrouterChat(
+  tier: Tier,
   system: string,
   user: string,
   maxTokens: number,
   jsonMode: boolean
 ): Promise<string | null> {
-  const key = process.env.DEEPSEEK_API_KEY;
+  const key = process.env.OPENROUTER_API_KEY;
   if (!key) return null;
-  const base = process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com";
-  const model = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
-  const res = await fetch(`${base}/chat/completions`, {
+
+  // Paid requests downgrade to the free model once the daily budget is spent.
+  const effectiveTier: Tier = tier === "paid" && !paidBudgetAvailable() ? "free" : tier;
+  const model =
+    effectiveTier === "paid"
+      ? (process.env.OPENROUTER_PAID_MODEL ?? "deepseek/deepseek-v4-flash")
+      : (process.env.OPENROUTER_FREE_MODEL ?? "openai/gpt-oss-120b:free");
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${key}`,
+      "HTTP-Referer": "http://localhost:3000",
+      "X-Title": "Indian Financial Terminal",
     },
     body: JSON.stringify({
       model,
@@ -52,16 +83,148 @@ async function deepseekChat(
       ],
       ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
     }),
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+  const json = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    usage?: { total_tokens?: number };
+  };
+  if (effectiveTier === "paid") recordPaidUsage(json.usage?.total_tokens ?? maxTokens);
+  const content = json.choices?.[0]?.message?.content?.trim();
+  return content || null;
+}
+
+/* ---- Legacy fallback providers ---- */
+
+async function deepseekChat(
+  system: string,
+  user: string,
+  maxTokens: number,
+  jsonMode: boolean
+): Promise<string | null> {
+  const key = process.env.DEEPSEEK_API_KEY;
+  if (!key) return null;
+  const base = process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com";
+  const res = await fetch(`${base}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+    }),
     signal: AbortSignal.timeout(45_000),
   });
   if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
-  const json = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
+  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
   return json.choices?.[0]?.message?.content?.trim() || null;
 }
 
-/* ---- Narrative ---- */
+async function anthropicChat(
+  system: string,
+  user: string,
+  maxTokens: number
+): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  const client = new Anthropic();
+  const response = await client.messages.create({
+    model: process.env.ANALYSIS_MODEL ?? "claude-opus-4-8",
+    max_tokens: maxTokens,
+    system,
+    messages: [{ role: "user", content: user }],
+  });
+  return (
+    response.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join(" ")
+      .trim() || null
+  );
+}
+
+/** Provider waterfall. Each provider is attempted at most once. */
+async function complete(
+  tier: Tier,
+  system: string,
+  user: string,
+  maxTokens: number,
+  jsonMode = false
+): Promise<string | null> {
+  for (const attempt of [
+    () => openrouterChat(tier, system, user, maxTokens, jsonMode),
+    () => deepseekChat(system, user, maxTokens, jsonMode),
+    () => anthropicChat(system, user, maxTokens),
+  ]) {
+    try {
+      const out = await attempt();
+      if (out) return out;
+    } catch {
+      // try next provider
+    }
+  }
+  return null;
+}
+
+/* ---- Headline sentiment NLP (FREE tier) ---- */
+
+export interface LlmSentiment {
+  score: number; // -1..1
+  rationale: string;
+  positives: string[];
+  negatives: string[];
+}
+
+export async function llmSentiment(
+  company: string,
+  headlines: string[]
+): Promise<LlmSentiment | null> {
+  if (headlines.length < 3) return null;
+  const text = await complete(
+    "free",
+    "You are a markets NLP engine. Read news headlines about an Indian listed company and judge " +
+      "the net sentiment FOR ITS STOCK (not general news tone). Weigh materiality: results, " +
+      "guidance, orders, regulation and ratings matter more than routine coverage. Respond with " +
+      'a JSON object: {"score": number between -1 and 1, "rationale": "one sentence", ' +
+      '"positives": ["up to 3 short phrases"], "negatives": ["up to 3 short phrases"]}',
+    JSON.stringify({ company, headlines }),
+    500,
+    true
+  );
+  if (!text) return null;
+  try {
+    const obj = JSON.parse(text) as Partial<LlmSentiment>;
+    if (typeof obj.score !== "number" || !obj.rationale) return null;
+    return {
+      score: Math.max(-1, Math.min(1, obj.score)),
+      rationale: obj.rationale,
+      positives: obj.positives ?? [],
+      negatives: obj.negatives ?? [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Shared cache so the Intelligence Score and the chart projection consume a
+ * single free-tier sentiment call per symbol per window.
+ */
+export function cachedLlmSentiment(
+  symbol: string,
+  company: string,
+  headlines: string[]
+): Promise<LlmSentiment | null> {
+  return cached(`llm-sentiment:${symbol}`, 10 * 60 * 1000, () =>
+    llmSentiment(company, headlines)
+  );
+}
+
+/* ---- Intelligence Score narrative (PAID tier, budget-guarded) ---- */
 
 interface NarrativeInput {
   symbol: string;
@@ -73,9 +236,7 @@ interface NarrativeInput {
   headlines: string[];
 }
 
-export async function generateNarrative(
-  input: NarrativeInput
-): Promise<string | null> {
+export async function generateNarrative(input: NarrativeInput): Promise<string | null> {
   const context = JSON.stringify({
     security: input.name ?? input.symbol,
     overall_score_0_100: input.overallScore,
@@ -92,49 +253,26 @@ export async function generateNarrative(
     recent_headlines: input.headlines,
   });
 
-  try {
-    if (process.env.DEEPSEEK_API_KEY) {
-      return await deepseekChat(NARRATIVE_SYSTEM, context, 600, false);
-    }
-    if (process.env.ANTHROPIC_API_KEY) {
-      const client = new Anthropic();
-      const response = await client.messages.create({
-        model: process.env.ANALYSIS_MODEL ?? "claude-opus-4-8",
-        max_tokens: 1024,
-        system: NARRATIVE_SYSTEM,
-        messages: [{ role: "user", content: context }],
-      });
-      const text = response.content
-        .filter((b): b is Anthropic.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join(" ")
-        .trim();
-      return text || null;
-    }
-  } catch {
-    // Any provider failure falls back to the deterministic narrative.
-  }
-  return null;
+  return complete(
+    "paid",
+    "You are a senior Indian equity research analyst writing a terminal note. " +
+      "You are given a multi-pillar intelligence score (0-100) for an NSE-listed security. " +
+      "Write a tight 4-6 sentence analyst note: explain WHY the score is what it is by " +
+      "synthesizing the strongest and weakest pillars, reconcile the technical picture with the " +
+      "news flow, flag the single biggest risk to the thesis, and mention concrete price levels. " +
+      "Never issue buy/sell commands — explain. Plain text only, no markdown, no preamble, " +
+      "no disclaimers (the UI shows one).",
+    context,
+    600
+  );
 }
 
-/* ---- Earnings brief ---- */
+/* ---- Earnings brief (FREE tier) ---- */
 
 export interface EarningsBriefSummary {
   financials: string;
   discussions: string;
   managementCommentary: string;
-}
-
-function parseBrief(text: string): EarningsBriefSummary | null {
-  try {
-    const obj = JSON.parse(text) as Partial<EarningsBriefSummary>;
-    if (obj.financials && obj.discussions && obj.managementCommentary) {
-      return obj as EarningsBriefSummary;
-    }
-  } catch {
-    // fall through
-  }
-  return null;
 }
 
 export async function generateEarningsBrief(
@@ -144,65 +282,31 @@ export async function generateEarningsBrief(
 ): Promise<EarningsBriefSummary | null> {
   if (resultHeadlines.length + commentaryHeadlines.length === 0) return null;
 
-  const user = JSON.stringify({
-    company,
-    results_coverage: resultHeadlines,
-    management_commentary_coverage: commentaryHeadlines,
-  });
-
+  const text = await complete(
+    "free",
+    "You are an equity research associate. From news headlines about an Indian company's " +
+      "latest quarterly results, produce a factual three-part brief. Only state what the " +
+      "headlines support; if coverage is thin, say so plainly. No advice, no markdown. " +
+      'Respond with a JSON object exactly of the shape {"financials": "2-3 sentences on ' +
+      'revenue/profit/margins", "discussions": "2-3 sentences on other material points — ' +
+      'segments, dividends, orders, outlook", "managementCommentary": "2-3 sentences on what ' +
+      'top executives emphasised"}',
+    JSON.stringify({
+      company,
+      results_coverage: resultHeadlines,
+      management_commentary_coverage: commentaryHeadlines,
+    }),
+    800,
+    true
+  );
+  if (!text) return null;
   try {
-    if (process.env.DEEPSEEK_API_KEY) {
-      const text = await deepseekChat(
-        BRIEF_SYSTEM +
-          ' Respond with a JSON object exactly of the shape {"financials": "2-3 sentences on revenue/profit/margins", ' +
-          '"discussions": "2-3 sentences on other material points — segments, dividends, orders, outlook", ' +
-          '"managementCommentary": "2-3 sentences on what top executives emphasised"}.',
-        user,
-        800,
-        true
-      );
-      return text ? parseBrief(text) : null;
-    }
-    if (process.env.ANTHROPIC_API_KEY) {
-      const client = new Anthropic();
-      const response = await client.messages.create({
-        model: process.env.ANALYSIS_MODEL ?? "claude-opus-4-8",
-        max_tokens: 1200,
-        system: BRIEF_SYSTEM,
-        messages: [{ role: "user", content: user }],
-        output_config: {
-          format: {
-            type: "json_schema",
-            schema: {
-              type: "object",
-              properties: {
-                financials: {
-                  type: "string",
-                  description: "2-3 sentences: revenue/profit/margin picture from the latest reported quarter",
-                },
-                discussions: {
-                  type: "string",
-                  description: "2-3 sentences: other material points in the results — segments, one-offs, dividends, orders, outlook",
-                },
-                managementCommentary: {
-                  type: "string",
-                  description: "2-3 sentences: what top executives emphasised while announcing results — guidance, tone, strategic priorities",
-                },
-              },
-              required: ["financials", "discussions", "managementCommentary"],
-              additionalProperties: false,
-            },
-          },
-        },
-      });
-      const text = response.content
-        .filter((b): b is Anthropic.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join("");
-      return parseBrief(text);
+    const obj = JSON.parse(text) as Partial<EarningsBriefSummary>;
+    if (obj.financials && obj.discussions && obj.managementCommentary) {
+      return obj as EarningsBriefSummary;
     }
   } catch {
-    // fall through to headline-only UI
+    // malformed — headline-only UI
   }
   return null;
 }
