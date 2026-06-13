@@ -3,6 +3,7 @@ import type { EnsembleModelView } from "@/lib/analysis/llm";
 import { computeIndicators, type TechnicalIndicators } from "@/lib/analysis/technical";
 import { scoreNewsSentiment, type SentimentResult } from "@/lib/analysis/sentiment";
 import { getChart, getFundamentals, getNews } from "@/lib/market";
+import { getSectorMedians, type SectorMedians } from "@/lib/screener";
 import type { FundamentalsData, NewsItem } from "@/types/market";
 
 /**
@@ -75,22 +76,59 @@ function pillar(b: PillarBuild): { score: number; available: boolean } {
   };
 }
 
-function valuationPillar(f: FundamentalsData | null, last: number): PillarScore {
+function valuationPillar(
+  f: FundamentalsData | null,
+  last: number,
+  secMed?: SectorMedians | null
+): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+
+  // P/E — scored RELATIVE to the sector median when available (a 38x quality
+  // compounder is not "expensive" if its sector trades at 40x); falls back to
+  // absolute bands only when no sector context exists.
   if (f?.trailingPE != null && f.trailingPE > 0) {
     const pe = f.trailingPE;
-    const s = pe < 15 ? 82 : pe < 22 ? 68 : pe < 32 ? 52 : pe < 45 ? 38 : 24;
-    b.scores.push(s);
-    (s >= 60 ? b.drivers : b.cautions).push(
-      `P/E ${pe.toFixed(1)}x · ${s >= 60 ? "reasonable vs broad-market norms" : "rich; growth must deliver"}`
-    );
+    if (secMed?.pe && secMed.pe > 0) {
+      const rel = pe / secMed.pe; // <1 = cheaper than peers
+      const s = rel < 0.7 ? 86 : rel < 0.9 ? 70 : rel < 1.1 ? 55 : rel < 1.4 ? 40 : 26;
+      b.scores.push(s);
+      const gap = (rel - 1) * 100;
+      (s >= 55 ? b.drivers : b.cautions).push(
+        `P/E ${pe.toFixed(1)}x · ${gap >= 0 ? "+" : ""}${gap.toFixed(0)}% vs sector median ${secMed.pe.toFixed(1)}x`
+      );
+    } else {
+      const s = pe < 15 ? 82 : pe < 22 ? 68 : pe < 32 ? 52 : pe < 45 ? 38 : 24;
+      b.scores.push(s);
+      (s >= 60 ? b.drivers : b.cautions).push(
+        `P/E ${pe.toFixed(1)}x · ${s >= 60 ? "reasonable vs broad-market norms" : "rich; growth must deliver"}`
+      );
+    }
   }
+
+  // PEG — valuation in the context of growth (the compounder's defence).
+  if (f?.trailingPE != null && f.trailingPE > 0 && f.earningsGrowth != null && f.earningsGrowth > 0) {
+    const peg = f.trailingPE / (f.earningsGrowth * 100);
+    const s = peg < 1 ? 86 : peg < 1.5 ? 68 : peg < 2.5 ? 50 : 32;
+    b.scores.push(s);
+    (s >= 55 ? b.drivers : b.cautions).push(`PEG ${peg.toFixed(2)} (P/E vs earnings growth)`);
+  }
+
   if (f?.priceToBook != null && f.priceToBook > 0) {
     const pb = f.priceToBook;
-    const s = pb < 2 ? 78 : pb < 4 ? 60 : pb < 8 ? 45 : 30;
-    b.scores.push(s);
-    (s >= 60 ? b.drivers : b.cautions).push(`P/B ${pb.toFixed(1)}x`);
+    if (secMed?.pb && secMed.pb > 0) {
+      const rel = pb / secMed.pb;
+      const s = rel < 0.7 ? 80 : rel < 0.95 ? 64 : rel < 1.3 ? 50 : 34;
+      b.scores.push(s);
+      (s >= 55 ? b.drivers : b.cautions).push(
+        `P/B ${pb.toFixed(1)}x vs sector ${secMed.pb.toFixed(1)}x`
+      );
+    } else {
+      const s = pb < 2 ? 78 : pb < 4 ? 60 : pb < 8 ? 45 : 30;
+      b.scores.push(s);
+      (s >= 60 ? b.drivers : b.cautions).push(`P/B ${pb.toFixed(1)}x`);
+    }
   }
+
   if (f?.targetMeanPrice != null && last > 0) {
     const upside = ((f.targetMeanPrice - last) / last) * 100;
     const s = clamp100(50 + upside * 1.8);
@@ -280,8 +318,15 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
   const sentiment = scoreNewsSentiment(news);
   const ai = await getAiAnalysis(symbol).catch(() => null);
 
+  // Sector medians for relative valuation · best-effort, falls back gracefully.
+  let secMed: SectorMedians | null = null;
+  if (fundamentals?.sector) {
+    const medians = await getSectorMedians().catch(() => null);
+    secMed = medians?.[fundamentals.sector] ?? null;
+  }
+
   const pillars: PillarScore[] = [
-    valuationPillar(fundamentals, technicals.last),
+    valuationPillar(fundamentals, technicals.last, secMed),
     growthPillar(fundamentals),
     qualityPillar(fundamentals),
     momentumPillar(technicals),

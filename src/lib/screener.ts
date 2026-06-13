@@ -187,3 +187,43 @@ async function assemble(): Promise<ScreenerPayload> {
 export function getScreener(): Promise<ScreenerPayload> {
   return cached("screener:v1", 30 * 60 * 1000, assemble);
 }
+
+export interface SectorMedians {
+  pe?: number;
+  pb?: number;
+  roe?: number;
+  revGrowth?: number;
+  netMargin?: number;
+  count: number;
+}
+
+function med(xs: Array<number | undefined>): number | undefined {
+  const s = xs.filter((x): x is number => x != null && Number.isFinite(x)).sort((a, b) => a - b);
+  if (!s.length) return undefined;
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+/** Per-sector median metrics, used to score valuation/quality relative to peers. */
+export async function getSectorMedians(): Promise<Record<string, SectorMedians>> {
+  const { rows } = await getScreener();
+  const bySector = new Map<string, ScreenerRow[]>();
+  for (const r of rows) {
+    if (!r.sector) continue;
+    const list = bySector.get(r.sector) ?? [];
+    list.push(r);
+    bySector.set(r.sector, list);
+  }
+  const out: Record<string, SectorMedians> = {};
+  for (const [sector, list] of bySector) {
+    out[sector] = {
+      pe: med(list.map((r) => (r.pe != null && r.pe > 0 ? r.pe : undefined))),
+      pb: med(list.map((r) => r.pb)),
+      roe: med(list.map((r) => r.roe)),
+      revGrowth: med(list.map((r) => r.revGrowth)),
+      netMargin: med(list.map((r) => r.netMargin)),
+      count: list.length,
+    };
+  }
+  return out;
+}
