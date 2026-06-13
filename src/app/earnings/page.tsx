@@ -9,6 +9,7 @@ import { EarningsBriefBody } from "@/components/earnings/EarningsBrief";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
 import { cn } from "@/lib/utils";
 import type { EarningsEntry } from "@/app/api/earnings/route";
 
@@ -52,6 +53,13 @@ export default function EarningsPage() {
     return acc;
   }, {});
 
+  const now = Date.now();
+  const weekCount = (data ?? []).filter(
+    (e) => new Date(e.start).getTime() - now <= 7 * 86_400_000
+  ).length;
+  const confirmedCount = (data ?? []).filter((e) => e.confirmed).length;
+  const nextUp = (data ?? [])[0];
+
   return (
     <div className="space-y-2 p-2">
       <PageHeader
@@ -60,6 +68,15 @@ export default function EarningsPage() {
         title="Earnings Calendar"
         subtitle="Upcoming results for the NIFTY 50 universe · windows firm up as dates are confirmed"
       />
+
+      {data && data.length > 0 && (
+        <StatBand cols={4}>
+          <StatTile label="Upcoming" numeric={data.length} format={(n) => String(Math.round(n))} sub="NIFTY 50 results" tone="primary" />
+          <StatTile label="This Week" numeric={weekCount} format={(n) => String(Math.round(n))} sub="reporting ≤7 days" tone={weekCount > 0 ? "bull" : "neutral"} />
+          <StatTile label="Confirmed Dates" numeric={confirmedCount} format={(n) => String(Math.round(n))} sub={`${data.length - confirmedCount} tentative`} tone="neutral" />
+          <StatTile label="Next Up" value={nextUp?.symbol ?? "—"} sub={nextUp ? fmtDate(nextUp.start).replace(/,.*/, "") : ""} tone="primary" />
+        </StatBand>
+      )}
 
       {isLoading ? (
         <div className="space-y-2">

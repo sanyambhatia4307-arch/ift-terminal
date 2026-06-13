@@ -5,8 +5,11 @@ import axios from "axios";
 import { formatDistanceToNowStrict } from "date-fns";
 import { AlertOctagon, Rocket } from "lucide-react";
 import { PageHeader } from "@/components/shell/PageHeader";
+import { Donut, type DonutSegment } from "@/components/ui/donut";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
+import { TONE } from "@/lib/tones";
 import { cn } from "@/lib/utils";
 import type { IpoDossier } from "@/lib/data/ipos";
 import type { NewsItem } from "@/types/market";
@@ -136,6 +139,33 @@ function IpoCard({ ipo }: { ipo: IpoWithNews }) {
   );
 }
 
+function IpoStatHero({ ipos }: { ipos: IpoWithNews[] }) {
+  const positive = ipos.filter((i) => i.gainSentiment === "positive").length;
+  const neutral = ipos.filter((i) => i.gainSentiment === "neutral").length;
+  const caution = ipos.filter((i) => i.gainSentiment === "caution").length;
+  const totalNews = ipos.reduce((a, i) => a + i.news.length, 0);
+  const segments: DonutSegment[] = [
+    { label: "Favourable", value: positive, color: TONE.green },
+    { label: "Balanced", value: neutral, color: TONE.amber },
+    { label: "Caution", value: caution, color: TONE.red },
+  ];
+  return (
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.6fr_1fr]">
+      <StatBand cols={4}>
+        <StatTile label="In Pipeline" numeric={ipos.length} format={(n) => String(Math.round(n))} sub="tracked names" tone="primary" />
+        <StatTile label="Favourable Setup" numeric={positive} format={(n) => String(Math.round(n))} sub="listing-gain lean" tone="bull" />
+        <StatTile label="Caution Flagged" numeric={caution} format={(n) => String(Math.round(n))} sub="aggressive pricing/risk" tone="bear" />
+        <StatTile label="Live Stories" numeric={totalNews} format={(n) => String(Math.round(n))} sub="across the pipeline" tone="neutral" />
+      </StatBand>
+      <Panel code="MOOD" title="Listing-gain sentiment">
+        <div className="p-3">
+          <Donut segments={segments} centerTop={String(ipos.length)} centerSub="IPOS" />
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
 export default function IposPage() {
   const { data, isLoading } = useIpos();
 
@@ -163,6 +193,7 @@ export default function IposPage() {
         </div>
       ) : (
         <>
+          {data && <IpoStatHero ipos={data.ipos} />}
           {data?.ipos.map((ipo) => <IpoCard key={ipo.id} ipo={ipo} />)}
           <p className="px-1 text-[9px] leading-snug text-muted-foreground">
             Dossier fields (valuation, structure, risk flags) are editorial research summaries of

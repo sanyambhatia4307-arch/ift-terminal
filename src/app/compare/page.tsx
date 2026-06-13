@@ -8,8 +8,10 @@ import { CompareChart, COMPARE_COLORS } from "@/components/compare/CompareChart"
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Panel } from "@/components/ui/panel";
+import { Radar, type RadarSeries } from "@/components/ui/radar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuotes } from "@/hooks/queries";
+import type { AnalysisResult } from "@/lib/analysis/engine";
 import { changeClass, fmt, fmtInrCompact, fmtPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { FundamentalsData, ChartResult } from "@/types/market";
@@ -45,10 +47,47 @@ export default function ComparePage() {
     })),
   });
 
+  const analysisQueries = useQueries({
+    queries: symbols.map((s) => ({
+      queryKey: ["analysis", s],
+      queryFn: () => getData<AnalysisResult>(`/api/analysis/${encodeURIComponent(s)}`),
+      staleTime: 10 * 60 * 1000,
+      retry: 0,
+    })),
+  });
+
   const charts = symbols
     .map((symbol, i) => ({ symbol, data: chartQueries[i].data }))
     .filter((c): c is { symbol: string; data: ChartResult } => !!c.data);
   const chartsLoading = chartQueries.some((q) => q.isLoading);
+
+  // Radar of the seven pillars (risk shown inverted so "bigger = better").
+  const RADAR_AXES = ["Value", "Growth", "Quality", "Momentum", "Strength", "Sentiment", "Safety"];
+  const radarSeries: RadarSeries[] = symbols
+    .map((s, i) => {
+      const a = analysisQueries[i].data;
+      if (!a) return null;
+      const byKey = (k: string) => a.pillars.find((p) => p.key === k);
+      const v = (k: string, invert = false) => {
+        const p = byKey(k);
+        if (!p?.available) return 0;
+        return invert ? 100 - p.score : p.score;
+      };
+      return {
+        label: s,
+        color: COMPARE_COLORS[i % COMPARE_COLORS.length],
+        values: [
+          v("valuation"),
+          v("growth"),
+          v("quality"),
+          v("momentum"),
+          v("strength"),
+          v("sentiment"),
+          v("risk", true),
+        ],
+      } satisfies RadarSeries;
+    })
+    .filter((x): x is RadarSeries => x !== null);
 
   const addSymbol = () => {
     const s = input.trim().toUpperCase();
@@ -128,8 +167,8 @@ export default function ComparePage() {
         <span className="text-[10px] text-muted-foreground">up to 4 symbols</span>
       </div>
 
-      <div className="stagger grid grid-cols-1 gap-2 xl:grid-cols-2">
-        <Panel code="PERF" title="1Y Relative Performance · rebased to 100">
+      <div className="stagger grid grid-cols-1 gap-2 xl:grid-cols-3">
+        <Panel code="PERF" title="1Y Relative Performance · rebased to 100" className="xl:col-span-2">
           {chartsLoading && charts.length === 0 ? (
             <Skeleton className="m-2 h-[340px]" />
           ) : charts.length === 0 ? (
@@ -141,7 +180,33 @@ export default function ComparePage() {
           )}
         </Panel>
 
-        <Panel code="FUND" title="Fundamentals · side by side">
+        <Panel code="INTL" title="Intelligence Pillars · radar">
+          <div className="p-2">
+            {radarSeries.length === 0 ? (
+              <div className="flex h-[260px] items-center justify-center text-xs text-muted-foreground">
+                Scoring…
+              </div>
+            ) : (
+              <>
+                <Radar axes={RADAR_AXES} series={radarSeries} />
+                <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1">
+                  {radarSeries.map((s) => (
+                    <span key={s.label} className="num flex items-center gap-1 text-[10px]">
+                      <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: s.color }} />
+                      {s.label}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-1 px-1 text-[9px] leading-snug text-muted-foreground">
+                  Each axis 0–100; bigger is better (Safety = inverted risk). Hover a stock&apos;s
+                  page for the exact pillar drivers.
+                </p>
+              </>
+            )}
+          </div>
+        </Panel>
+
+        <Panel code="FUND" title="Fundamentals · side by side" className="xl:col-span-3">
           <div className="overflow-x-auto">
             <table className="w-full text-[11px]">
               <thead>

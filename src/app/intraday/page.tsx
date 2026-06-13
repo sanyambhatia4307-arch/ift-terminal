@@ -8,6 +8,7 @@ import { IntradayChart } from "@/components/intraday/IntradayChart";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
 import { TRADEABLE_INDICES, type IntradayAnalysis } from "@/lib/analysis/intraday-types";
 import { changeClass, fmt, fmtPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -217,6 +218,20 @@ export default function IntradayPage() {
           ))}
         </div>
       </div>
+
+      {a && (
+        <StatBand cols={4}>
+          <StatTile
+            label="Bias"
+            value={a.bias === "bullish" ? "BULLISH" : a.bias === "bearish" ? "BEARISH" : "NEUTRAL"}
+            sub={`${a.plan.direction} setup`}
+            tone={a.bias === "bullish" ? "bull" : a.bias === "bearish" ? "bear" : "primary"}
+          />
+          <StatTile label="Central Pivot" numeric={a.levels.pivot} format={(n) => fmt(n)} sub={`CPR ${fmt(a.levels.bc)}–${fmt(a.levels.tc)}`} tone="primary" />
+          <StatTile label="Nearest Support" numeric={a.levels.s1} format={(n) => fmt(n)} sub="S1 floor pivot" tone="bull" />
+          <StatTile label="Nearest Resistance" numeric={a.levels.r1} format={(n) => fmt(n)} sub="R1 ceiling pivot" tone="bear" />
+        </StatBand>
+      )}
 
       {isLoading || !a ? (
         <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">

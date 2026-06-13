@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
 import { useNews } from "@/hooks/queries";
 
 const TOPICS = [
@@ -66,6 +67,25 @@ export default function NewsPage() {
           />
         </form>
       </div>
+
+      {data && data.length > 0 && (
+        <StatBand cols={3}>
+          <StatTile label="Stories" numeric={data.length} format={(n) => String(Math.round(n))} sub="in this feed" tone="primary" />
+          <StatTile
+            label="Freshest"
+            value={`${formatDistanceToNowStrict(new Date(data[0].publishedAt))} ago`}
+            sub={data[0].source}
+            tone="bull"
+          />
+          <StatTile
+            label="Sources"
+            numeric={new Set(data.map((n) => n.source)).size}
+            format={(n) => String(Math.round(n))}
+            sub="distinct outlets"
+            tone="neutral"
+          />
+        </StatBand>
+      )}
 
       <Panel code="NEWS" title={activeSearch ? `News · "${activeSearch}"` : `News · ${TOPICS[topic].label}`}>
         {isLoading ? (

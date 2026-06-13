@@ -5,12 +5,15 @@ import axios from "axios";
 import { ChevronRight, Globe2 } from "lucide-react";
 import Link from "next/link";
 import { Fragment, useState } from "react";
+import { Heatmap } from "@/components/dashboard/Heatmap";
 import { MoversPanel } from "@/components/dashboard/MoversPanel";
+import { SectorPerformance } from "@/components/dashboard/SectorPerformance";
 import { DealsPanel } from "@/components/markets/DealsPanel";
 import { PageHeader } from "@/components/shell/PageHeader";
-import { SectorPerformance } from "@/components/dashboard/SectorPerformance";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
+import { useMovers } from "@/hooks/queries";
 import {
   Table,
   TableBody,
@@ -206,6 +209,49 @@ function AllIndicesTable() {
   );
 }
 
+function MarketsStatBand() {
+  const { data } = useMovers();
+  const adv = data?.advances ?? 0;
+  const dec = data?.declines ?? 0;
+  const unch = data?.unchanged ?? 0;
+  const total = adv + dec + unch || 1;
+  const breadthPct = Math.round((adv / total) * 100);
+  const gainers = data?.gainers ?? [];
+  const losers = data?.losers ?? [];
+  const top = gainers[0];
+  const worst = losers[0];
+
+  return (
+    <StatBand cols={4}>
+      <StatTile
+        label="NIFTY 50 Breadth"
+        numeric={breadthPct}
+        format={(n) => `${Math.round(n)}%`}
+        sub={`${adv} up · ${dec} down`}
+        tone={breadthPct >= 50 ? "bull" : "bear"}
+      />
+      <StatTile
+        label="Top Gainer"
+        value={top?.symbol ?? "—"}
+        sub={top ? fmtPct(top.changePercent) : ""}
+        tone="bull"
+      />
+      <StatTile
+        label="Top Loser"
+        value={worst?.symbol ?? "—"}
+        sub={worst ? fmtPct(worst.changePercent) : ""}
+        tone="bear"
+      />
+      <StatTile
+        label="Advance / Decline"
+        value={`${adv} : ${dec}`}
+        sub={data?.source ? `via ${data.source.toUpperCase()}` : ""}
+        tone={adv >= dec ? "bull" : "bear"}
+      />
+    </StatBand>
+  );
+}
+
 export default function MarketsPage() {
   return (
     <div className="space-y-2 p-2">
@@ -213,8 +259,10 @@ export default function MarketsPage() {
         icon={Globe2}
         code="MKT"
         title="Markets"
-        subtitle="All indices · movers · sector performance · constituents"
+        subtitle="Breadth · heatmap · movers · sectors · deals · constituents"
       />
+      <MarketsStatBand />
+      <Heatmap />
       <div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
         <div className="xl:col-span-2">
           <MoversPanel count={8} />

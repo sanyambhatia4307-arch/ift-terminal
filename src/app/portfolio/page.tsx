@@ -7,12 +7,17 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Button } from "@/components/ui/button";
 import { FlashValue } from "@/components/ui/flash";
 import { Input } from "@/components/ui/input";
+import { Donut, type DonutSegment } from "@/components/ui/donut";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
 import { useQuotes } from "@/hooks/queries";
 import { changeClass, fmt, fmtInrCompact, fmtPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { TONE } from "@/lib/tones";
 import { usePortfolio } from "@/stores/portfolio";
+
+const ALLOC_COLORS = [TONE.amber, TONE.cyan, TONE.violet, TONE.teal, TONE.blue, TONE.pink, TONE.green];
 
 function AddHoldingForm() {
   const add = usePortfolio((s) => s.add);
@@ -96,6 +101,23 @@ export default function PortfolioPage() {
   const totalPnl = totalValue - totalInvested;
   const totalDayPnl = rows.reduce((a, r) => a + (r.dayPnl ?? 0), 0);
 
+  // Allocation donut — top 6 positions by value, rest grouped as "Others".
+  const allocation: DonutSegment[] = (() => {
+    const sized = rows
+      .map((r) => ({ symbol: r.symbol, value: r.value ?? r.invested }))
+      .filter((r) => r.value > 0)
+      .sort((a, b) => b.value - a.value);
+    const head = sized.slice(0, 6);
+    const rest = sized.slice(6).reduce((a, r) => a + r.value, 0);
+    const segs: DonutSegment[] = head.map((r, i) => ({
+      label: r.symbol,
+      value: r.value,
+      color: ALLOC_COLORS[i % ALLOC_COLORS.length],
+    }));
+    if (rest > 0) segs.push({ label: "Others", value: rest, color: TONE.orange });
+    return segs;
+  })();
+
   return (
     <div className="space-y-2 p-2">
       <PageHeader
@@ -106,31 +128,37 @@ export default function PortfolioPage() {
       />
 
       {holdings.length > 0 && (
-        <div className="stagger grid grid-cols-2 gap-2 md:grid-cols-4">
-          {[
-            ["Invested", fmtInrCompact(totalInvested), ""],
-            ["Current Value", fmtInrCompact(totalValue), ""],
-            [
-              "Total P&L",
-              `${totalPnl >= 0 ? "+" : "−"}${fmtInrCompact(Math.abs(totalPnl)).replace("₹", "₹")}`,
-              changeClass(totalPnl),
-            ],
-            [
-              "Day's P&L",
-              `${totalDayPnl >= 0 ? "+" : "−"}${fmtInrCompact(Math.abs(totalDayPnl))}`,
-              changeClass(totalDayPnl),
-            ],
-          ].map(([label, value, cls]) => (
-            <div key={label} className="panel-rise rounded-sm border border-border bg-card px-3 py-2">
-              <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
-              <div className={cn("num text-lg font-semibold", cls)}>{value}</div>
-              {label === "Total P&L" && totalInvested > 0 && (
-                <div className={cn("num text-[10px]", cls)}>
-                  {fmtPct((totalPnl / totalInvested) * 100)}
-                </div>
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.6fr_1fr]">
+          <StatBand cols={4}>
+            <StatTile label="Invested" numeric={totalInvested} format={fmtInrCompact} tone="neutral" />
+            <StatTile label="Current Value" numeric={totalValue} format={fmtInrCompact} tone="primary" />
+            <StatTile
+              label="Total P&L"
+              numeric={totalPnl}
+              format={(n) => `${n >= 0 ? "+" : "−"}${fmtInrCompact(Math.abs(n))}`}
+              sub={totalInvested > 0 ? fmtPct((totalPnl / totalInvested) * 100) : ""}
+              tone={totalPnl >= 0 ? "bull" : "bear"}
+            />
+            <StatTile
+              label="Day's P&L"
+              numeric={totalDayPnl}
+              format={(n) => `${n >= 0 ? "+" : "−"}${fmtInrCompact(Math.abs(n))}`}
+              tone={totalDayPnl >= 0 ? "bull" : "bear"}
+            />
+          </StatBand>
+          <Panel code="ALLOC" title="Allocation by value">
+            <div className="p-3">
+              {allocation.length > 0 ? (
+                <Donut
+                  segments={allocation}
+                  centerTop={String(holdings.length)}
+                  centerSub="HOLDINGS"
+                />
+              ) : (
+                <div className="text-[11px] text-muted-foreground">Live values loading…</div>
               )}
             </div>
-          ))}
+          </Panel>
         </div>
       )}
 

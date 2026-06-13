@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { FlashValue } from "@/components/ui/flash";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatBand, StatTile } from "@/components/ui/stat-tile";
 import { changeClass, fmt, fmtPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CommodityRow } from "@/app/api/commodities/route";
@@ -117,6 +118,43 @@ function GroupPanel({
   );
 }
 
+function CommodityStatHero({ data }: { data: CommodityGroup[] }) {
+  const all = data.flatMap((g) => g.rows);
+  const find = (sym: string) => all.find((r) => r.symbol === sym);
+  const cards: Array<{ label: string; row?: CommodityRow }> = [
+    { label: "Gold", row: find("GC=F") },
+    { label: "Silver", row: find("SI=F") },
+    { label: "Brent Crude", row: find("BZ=F") },
+    { label: "USD / INR", row: find("INR=X") },
+  ];
+  return (
+    <StatBand cols={4}>
+      {cards.map(({ label, row }) => (
+        <StatTile
+          key={label}
+          label={label}
+          numeric={row?.inrValue ?? row?.last ?? 0}
+          format={(n) =>
+            label === "USD / INR"
+              ? `₹${n.toFixed(2)}`
+              : `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`
+          }
+          sub={
+            row ? (
+              <span>
+                {row.inrUnit.replace(/^₹\/?/, "/")} · {fmtPct(row.changePercent)}
+              </span>
+            ) : (
+              ""
+            )
+          }
+          tone={row && row.changePercent >= 0 ? "bull" : "bear"}
+        />
+      ))}
+    </StatBand>
+  );
+}
+
 export default function CommoditiesPage() {
   const { data, isLoading } = useCommodities();
   const [sel, setSel] = useState<CommoditySelection | null>(null);
@@ -129,6 +167,8 @@ export default function CommoditiesPage() {
         title="Commodities"
         subtitle="₹-converted prices · click any row for full research · 60s refresh"
       />
+
+      {data && <CommodityStatHero data={data} />}
 
       {sel && <CommodityDetail sel={sel} onClose={() => setSel(null)} />}
 
