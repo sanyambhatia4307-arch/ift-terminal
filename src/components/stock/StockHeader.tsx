@@ -30,12 +30,12 @@ export function StockHeader({ symbol }: { symbol: string }) {
   const up = q.change >= 0;
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-border bg-card">
+    <div className="surface-panel relative overflow-hidden rounded-md border border-border">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background: `radial-gradient(60% 140% at 0% 0%, color-mix(in oklab, ${up ? "var(--bull)" : "var(--bear)"} 9%, transparent), transparent 60%)`,
+          background: `radial-gradient(60% 140% at 0% 0%, color-mix(in oklab, ${up ? "var(--bull)" : "var(--bear)"} 15%, transparent), transparent 60%)`,
         }}
       />
       <div className="relative flex flex-wrap items-center gap-x-8 gap-y-3 px-3 py-2.5">

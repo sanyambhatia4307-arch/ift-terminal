@@ -15,10 +15,10 @@ const TONE_TEXT: Record<Tone, string> = {
 };
 
 const TONE_GLOW: Record<Tone, string> = {
-  bull: "color-mix(in oklab, var(--bull) 8%, transparent)",
-  bear: "color-mix(in oklab, var(--bear) 8%, transparent)",
+  bull: "color-mix(in oklab, var(--bull) 15%, transparent)",
+  bear: "color-mix(in oklab, var(--bear) 15%, transparent)",
   neutral: "transparent",
-  primary: "color-mix(in oklab, var(--primary) 8%, transparent)",
+  primary: "color-mix(in oklab, var(--primary) 15%, transparent)",
 };
 
 /** A single KPI card: label, animated value, sub-line, optional sparkline. */
@@ -46,10 +46,12 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "panel-rise hover-glow relative flex flex-col justify-center overflow-hidden rounded-sm border border-border bg-card px-2.5 py-2",
+        "panel-rise hover-glow surface-panel relative flex flex-col justify-center overflow-hidden rounded-sm border border-border px-2.5 py-2",
         className
       )}
-      style={{ background: `linear-gradient(180deg, ${TONE_GLOW[tone]}, transparent)` }}
+      style={{
+        background: `linear-gradient(180deg, ${TONE_GLOW[tone]}, transparent 72%), var(--card)`,
+      }}
     >
       <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className={cn("num mt-0.5 text-lg font-semibold leading-tight", TONE_TEXT[tone])}>

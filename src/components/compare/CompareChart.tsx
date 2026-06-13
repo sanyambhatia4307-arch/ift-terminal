@@ -9,7 +9,7 @@ import {
 import { useEffect, useRef } from "react";
 import type { ChartResult } from "@/types/market";
 
-export const COMPARE_COLORS = ["#b07d18", "#0e9f6e", "#3b6fd4", "#dc3d43"];
+export const COMPARE_COLORS = ["#e0a93a", "#26d98a", "#5b8def", "#f4606a"];
 
 /** Multi-symbol chart, each series rebased to 100 at the first shared bar. */
 export function CompareChart({ charts }: { charts: Array<{ symbol: string; data: ChartResult }> }) {
@@ -23,14 +23,14 @@ export function CompareChart({ charts }: { charts: Array<{ symbol: string; data:
       autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#5b6b82",
+        textColor: "#8b9bb5",
         fontFamily: "var(--font-plex-mono), monospace",
         fontSize: 10,
         attributionLogo: false,
       },
       grid: {
-        vertLines: { color: "rgba(100,116,139,0.12)" },
-        horzLines: { color: "rgba(100,116,139,0.12)" },
+        vertLines: { color: "rgba(148,163,184,0.08)" },
+        horzLines: { color: "rgba(148,163,184,0.08)" },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: { borderVisible: false },

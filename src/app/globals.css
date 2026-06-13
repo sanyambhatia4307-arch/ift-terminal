@@ -4,32 +4,34 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Institutional bright terminal palette · cool paper white */
-  --background: oklch(0.965 0.005 250);
-  --foreground: oklch(0.26 0.02 255);
-  --card: oklch(0.995 0.002 250);
-  --card-foreground: oklch(0.26 0.02 255);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.26 0.02 255);
-  --primary: oklch(0.6 0.13 70);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.93 0.007 250);
-  --secondary-foreground: oklch(0.3 0.02 255);
-  --muted: oklch(0.92 0.007 250);
-  --muted-foreground: oklch(0.5 0.022 255);
-  --accent: oklch(0.9 0.012 250);
-  --accent-foreground: oklch(0.25 0.02 255);
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.875 0.009 250);
-  --input: oklch(0.875 0.009 250);
-  --ring: oklch(0.6 0.13 70);
+  /* Institutional dark terminal · deep navy-black OLED base, gold + purple accents */
+  --background: oklch(0.17 0.022 264);
+  --foreground: oklch(0.93 0.012 250);
+  --card: oklch(0.215 0.024 262);
+  --card-foreground: oklch(0.93 0.012 250);
+  --popover: oklch(0.2 0.024 262);
+  --popover-foreground: oklch(0.94 0.012 250);
+  --primary: oklch(0.8 0.14 78);
+  --primary-foreground: oklch(0.17 0.02 264);
+  --secondary: oklch(0.255 0.022 262);
+  --secondary-foreground: oklch(0.88 0.012 250);
+  --muted: oklch(0.26 0.02 262);
+  --muted-foreground: oklch(0.68 0.022 255);
+  --accent: oklch(0.31 0.03 264);
+  --accent-foreground: oklch(0.95 0.01 250);
+  --cta: oklch(0.68 0.17 300);
+  --cta-foreground: oklch(0.97 0.01 300);
+  --destructive: oklch(0.64 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.36 0.022 262);
+  --input: oklch(0.33 0.02 262);
+  --ring: oklch(0.8 0.14 78);
   --radius: 0.25rem;
 
-  /* Market semantics · darkened for contrast on white */
-  --bull: oklch(0.54 0.14 158);
-  --bear: oklch(0.55 0.19 25);
-  --flat: oklch(0.52 0.02 250);
+  /* Market semantics · brightened to pop on the dark base */
+  --bull: oklch(0.76 0.16 158);
+  --bear: oklch(0.68 0.2 23);
+  --flat: oklch(0.64 0.02 255);
 }
 
 @theme inline {
@@ -47,6 +49,8 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -64,33 +68,47 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
-  /* Soft ivory→blue-gray gradient · bright but never flat white */
+  /* Deep navy gradient · OLED-friendly, never flat black */
   background:
     linear-gradient(168deg,
-      oklch(0.978 0.008 230) 0%,
-      oklch(0.958 0.012 255) 42%,
-      oklch(0.965 0.014 95) 100%);
+      oklch(0.185 0.026 268) 0%,
+      oklch(0.155 0.02 262) 46%,
+      oklch(0.175 0.024 286) 100%);
   background-attachment: fixed;
   color: var(--foreground);
   font-feature-settings: "tnum" 1, "cv05" 1;
 }
 
-/* Aurora depth · two slow-drifting tinted glows behind everything */
+/* Aurora depth · slow-drifting gold / cyan / purple glows for the neon-data feel */
 body::before {
   content: "";
   position: fixed;
   inset: -20%;
-  z-index: -1;
+  z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(38% 30% at 18% 12%, oklch(0.6 0.14 295 / 0.08), transparent 70%),
-    radial-gradient(34% 28% at 85% 20%, oklch(0.62 0.11 200 / 0.07), transparent 70%),
-    radial-gradient(40% 32% at 70% 90%, oklch(0.68 0.13 75 / 0.07), transparent 70%);
+    radial-gradient(38% 30% at 16% 10%, oklch(0.7 0.16 300 / 0.16), transparent 70%),
+    radial-gradient(34% 28% at 86% 16%, oklch(0.74 0.13 210 / 0.13), transparent 70%),
+    radial-gradient(42% 34% at 74% 92%, oklch(0.8 0.15 78 / 0.12), transparent 70%);
   animation: aurora-drift 40s ease-in-out infinite alternate;
+}
+
+/* Faint precision grid · subtle terminal texture over the base */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, oklch(0.9 0.02 250 / 0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.9 0.02 250 / 0.022) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(120% 100% at 50% 0%, black 55%, transparent 100%);
 }
 
 @keyframes aurora-drift {
@@ -98,9 +116,9 @@ body::before {
   to { transform: translate3d(2%, 2%, 0) scale(1.06); }
 }
 
-/* Gradient display text for brand / page titles */
+/* Gradient display text for brand / page titles · bright on dark */
 .text-gradient {
-  background: linear-gradient(100deg, oklch(0.58 0.14 70), oklch(0.5 0.11 220) 60%, oklch(0.5 0.15 295));
+  background: linear-gradient(100deg, oklch(0.84 0.15 80), oklch(0.74 0.13 215) 55%, oklch(0.72 0.18 302));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -109,13 +127,13 @@ body::before {
 /* Module-tinted row hovers: panels expose --tone; links inside pick it up */
 .tone-scope a[href]:hover,
 .tone-scope tr.cursor-pointer:hover {
-  background-color: color-mix(in oklab, var(--tone, var(--primary)) 9%, transparent);
+  background-color: color-mix(in oklab, var(--tone, var(--primary)) 14%, transparent);
 }
 
 /* Dense scrollbars for terminal feel */
 * {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.78 0.01 250) transparent;
+  scrollbar-color: oklch(0.4 0.02 262) transparent;
 }
 
 /* Numeric cells */
@@ -131,6 +149,19 @@ body::before {
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* ---- Surfaces ---- */
+
+/* Lifted glass panel · faint top highlight + depth shadow on the dark base */
+.surface-panel {
+  background:
+    linear-gradient(180deg, oklch(0.255 0.024 262 / 0.5), oklch(0.21 0.022 262 / 0.92));
+  backdrop-filter: blur(6px);
+  box-shadow:
+    inset 0 1px 0 0 oklch(0.95 0.02 250 / 0.06),
+    0 1px 2px 0 oklch(0.1 0.02 264 / 0.5),
+    0 12px 28px -18px oklch(0.05 0.02 264 / 0.8);
 }
 
 /* ---- Motion system ---- */
@@ -156,24 +187,24 @@ body::before {
 
 /* Live-data flash on value change */
 @keyframes flash-up {
-  0% { background-color: color-mix(in oklab, var(--bull) 35%, transparent); }
+  0% { background-color: color-mix(in oklab, var(--bull) 40%, transparent); }
   100% { background-color: transparent; }
 }
 @keyframes flash-down {
-  0% { background-color: color-mix(in oklab, var(--bear) 35%, transparent); }
+  0% { background-color: color-mix(in oklab, var(--bear) 40%, transparent); }
   100% { background-color: transparent; }
 }
 .flash-up { animation: flash-up 0.9s ease-out; }
 .flash-down { animation: flash-down 0.9s ease-out; }
 
-/* Subtle interactive lift without layout shift */
+/* Subtle interactive lift without layout shift · gold neon edge on hover */
 .hover-glow {
   transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 .hover-glow:hover {
-  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
-    0 4px 18px -8px color-mix(in oklab, var(--primary) 25%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 28%, transparent),
+    0 6px 26px -10px color-mix(in oklab, var(--primary) 40%, transparent);
 }
 
 /* Score ring sweep */

@@ -66,14 +66,14 @@ export function MarketMoodBand() {
   const dii = pulse?.flows?.find((f) => f.category === "DII");
 
   return (
-    <div className="panel-rise relative overflow-hidden rounded-md border border-border bg-card">
+    <div className="panel-rise surface-panel relative overflow-hidden rounded-md border border-border">
       {/* tinted hero glow */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(60% 120% at 0% 0%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 60%), radial-gradient(50% 120% at 100% 100%, color-mix(in oklab, oklch(0.5 0.13 255) 9%, transparent), transparent 55%)",
+            "radial-gradient(60% 120% at 0% 0%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 60%), radial-gradient(50% 120% at 100% 100%, color-mix(in oklab, oklch(0.7 0.15 258) 14%, transparent), transparent 55%)",
         }}
       />
       <div className="relative grid grid-cols-1 gap-4 p-3 lg:grid-cols-[1.5fr_0.9fr_1.1fr]">

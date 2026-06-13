@@ -4,17 +4,17 @@
  * Color is semantic (module identity), never decorative noise.
  */
 
-/* Darkened for contrast on the bright gradient base */
+/* Brightened to glow as module hues on the dark terminal base */
 export const TONE = {
-  amber: "oklch(0.58 0.13 70)",
-  cyan: "oklch(0.52 0.1 210)",
-  blue: "oklch(0.5 0.13 255)",
-  violet: "oklch(0.5 0.15 295)",
-  pink: "oklch(0.55 0.16 350)",
-  teal: "oklch(0.54 0.1 175)",
-  green: "oklch(0.54 0.14 158)",
-  orange: "oklch(0.6 0.14 45)",
-  red: "oklch(0.55 0.19 25)",
+  amber: "oklch(0.81 0.14 78)",
+  cyan: "oklch(0.76 0.12 210)",
+  blue: "oklch(0.7 0.15 258)",
+  violet: "oklch(0.72 0.17 297)",
+  pink: "oklch(0.74 0.18 350)",
+  teal: "oklch(0.76 0.11 180)",
+  green: "oklch(0.77 0.16 158)",
+  orange: "oklch(0.76 0.16 50)",
+  red: "oklch(0.69 0.2 25)",
 } as const;
 
 export type ToneName = keyof typeof TONE;

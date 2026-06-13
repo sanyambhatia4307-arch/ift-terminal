@@ -23,7 +23,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "panel-rise hover-glow tone-scope relative flex min-w-0 flex-col overflow-hidden rounded-sm border border-border bg-card",
+        "panel-rise hover-glow tone-scope surface-panel relative flex min-w-0 flex-col overflow-hidden rounded-md border border-border",
         className
       )}
       style={{ "--tone": tone } as React.CSSProperties}
