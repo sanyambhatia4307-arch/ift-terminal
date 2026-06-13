@@ -54,12 +54,12 @@ export function ReactionStrip({ symbol }: { symbol: string }) {
       </div>
 
       <div className="flex items-end gap-1.5">
-        {oldestFirst.map((r) => {
+        {oldestFirst.map((r, i) => {
           const h = Math.max(4, (Math.abs(r.reactionPct) / maxAbs) * 36);
           const up = r.reactionPct >= 0;
           return (
             <div
-              key={r.date}
+              key={`${r.date}-${i}`}
               className="group flex flex-col items-center"
               title={`${r.date}: ${up ? "+" : ""}${r.reactionPct}% across the print (₹${r.prevClose} → ₹${r.postClose})`}
             >
@@ -85,8 +85,8 @@ export function ReactionStrip({ symbol }: { symbol: string }) {
             <div className="text-[8.5px] font-semibold uppercase tracking-widest text-primary/80">
               EPS vs estimate
             </div>
-            {data.surprises.slice(0, 4).map((s) => (
-              <div key={s.quarter}>
+            {data.surprises.slice(0, 4).map((s, i) => (
+              <div key={`${s.quarter}-${i}`}>
                 {s.quarter.slice(0, 7)}: {s.epsActual ?? "—"} vs {s.epsEstimate ?? "—"}{" "}
                 {s.surprisePercent !== undefined && (
                   <span className={s.surprisePercent >= 0 ? "text-bull" : "text-bear"}>

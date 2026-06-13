@@ -211,8 +211,10 @@ export async function nseResultsDates(symbol: string, limit = 9): Promise<Date[]
   const rows = await nseJson<
     Array<{ symbol: string; purpose: string; date: string }>
   >(`/api/event-calendar?index=equities&symbol=${encodeURIComponent(symbol)}`);
+  const seen = new Set<string>(); // NSE sometimes lists duplicate entries per date
   return rows
     .filter((r) => /financial results|results/i.test(r.purpose))
+    .filter((r) => (seen.has(r.date) ? false : (seen.add(r.date), true)))
     .map((r) => new Date(`${r.date} 12:00:00 GMT+0530`))
     .filter((d) => !Number.isNaN(d.getTime()) && d.getTime() < Date.now())
     .sort((a, b) => b.getTime() - a.getTime())
