@@ -49,8 +49,22 @@ export function getPaidBudgetStatus() {
 
 type Tier = "free" | "paid";
 
-async function openrouterChat(
-  tier: Tier,
+export function freeModel(): string {
+  return process.env.OPENROUTER_FREE_MODEL ?? "openai/gpt-oss-120b:free";
+}
+
+/** The two paid models that run together as an ensemble. */
+export function paidModels(): string[] {
+  return [
+    process.env.OPENROUTER_PAID_MODEL_A ?? "deepseek/deepseek-v4-flash",
+    process.env.OPENROUTER_PAID_MODEL_B ?? "openai/gpt-4o-mini",
+  ];
+}
+
+/** Low-level call to a specific OpenRouter model. `paid` flags budget metering. */
+async function openrouterModel(
+  model: string,
+  paid: boolean,
   system: string,
   user: string,
   maxTokens: number,
@@ -58,14 +72,6 @@ async function openrouterChat(
 ): Promise<string | null> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return null;
-
-  // Paid requests downgrade to the free model once the daily budget is spent.
-  const effectiveTier: Tier = tier === "paid" && !paidBudgetAvailable() ? "free" : tier;
-  const model =
-    effectiveTier === "paid"
-      ? (process.env.OPENROUTER_PAID_MODEL ?? "deepseek/deepseek-v4-flash")
-      : (process.env.OPENROUTER_FREE_MODEL ?? "openai/gpt-oss-120b:free");
-
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -85,14 +91,26 @@ async function openrouterChat(
     }),
     signal: AbortSignal.timeout(60_000),
   });
-  if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+  if (!res.ok) throw new Error(`OpenRouter ${model} ${res.status}`);
   const json = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
     usage?: { total_tokens?: number };
   };
-  if (effectiveTier === "paid") recordPaidUsage(json.usage?.total_tokens ?? maxTokens);
-  const content = json.choices?.[0]?.message?.content?.trim();
-  return content || null;
+  if (paid) recordPaidUsage(json.usage?.total_tokens ?? maxTokens);
+  return json.choices?.[0]?.message?.content?.trim() || null;
+}
+
+async function openrouterChat(
+  tier: Tier,
+  system: string,
+  user: string,
+  maxTokens: number,
+  jsonMode: boolean
+): Promise<string | null> {
+  // Paid single-model requests use model A, and downgrade to free once spent.
+  const usePaid = tier === "paid" && paidBudgetAvailable();
+  const model = usePaid ? paidModels()[0] : freeModel();
+  return openrouterModel(model, usePaid, system, user, maxTokens, jsonMode);
 }
 
 /* ---- Legacy fallback providers ---- */
@@ -265,6 +283,132 @@ export async function generateNarrative(input: NarrativeInput): Promise<string |
     context,
     600
   );
+}
+
+/* ---- Dual-model ensemble: technical + sentiment + projection ---- */
+
+export interface EnsembleModelView {
+  model: string;
+  sentiment: number; // -1..1
+  technicalBias: number; // -1..1
+  baseReturnPct: number; // expected % move over the horizon (base case)
+  bullReturnPct: number;
+  bearReturnPct: number;
+  confidence: number; // 0..1
+  note: string;
+}
+
+export interface EnsembleInput {
+  security: string;
+  horizonSessions: number;
+  technicals: Record<string, unknown>;
+  fundamentals: Record<string, unknown>;
+  patternShape?: string;
+  headlines: string[];
+}
+
+const ENSEMBLE_SYSTEM = (h: number) =>
+  "You are an Indian equity desk analyst. Given technicals, fundamentals, a detected chart " +
+  "pattern and recent headlines for an NSE security, judge BOTH the technical posture and the " +
+  "news sentiment, then project the likely path. Be decisive but calibrated; base your return " +
+  `estimates on the ~${h}-trading-session horizon given. Respond with ONLY a JSON object: ` +
+  '{"sentiment": <-1..1 news/stock sentiment>, "technical_bias": <-1..1 chart posture>, ' +
+  '"base_return_pct": <most-likely % move over the horizon>, "bull_return_pct": <upside case %>, ' +
+  '"bear_return_pct": <downside case %>, "confidence": <0..1>, ' +
+  '"note": "2 crisp sentences on the call, citing the pattern and the single biggest risk"}';
+
+function parseModelView(model: string, text: string | null): EnsembleModelView | null {
+  if (!text) return null;
+  try {
+    const o = JSON.parse(text) as Record<string, unknown>;
+    const num = (k: string, d = 0) => {
+      const v = o[k];
+      return typeof v === "number" && Number.isFinite(v) ? v : d;
+    };
+    const note = typeof o.note === "string" ? o.note : "";
+    if (!note) return null;
+    return {
+      model,
+      sentiment: Math.max(-1, Math.min(1, num("sentiment"))),
+      technicalBias: Math.max(-1, Math.min(1, num("technical_bias"))),
+      baseReturnPct: num("base_return_pct"),
+      bullReturnPct: num("bull_return_pct"),
+      bearReturnPct: num("bear_return_pct"),
+      confidence: Math.max(0, Math.min(1, num("confidence", 0.4))),
+      note,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export interface EnsembleResult {
+  source: "ensemble" | "free" | "none";
+  models: EnsembleModelView[];
+  sentiment: number;
+  technicalBias: number;
+  baseReturnPct: number;
+  bullReturnPct: number;
+  bearReturnPct: number;
+  confidence: number;
+}
+
+function average(views: EnsembleModelView[]): Omit<EnsembleResult, "source" | "models"> {
+  const m = (sel: (v: EnsembleModelView) => number) =>
+    views.reduce((a, v) => a + sel(v), 0) / views.length;
+  return {
+    sentiment: m((v) => v.sentiment),
+    technicalBias: m((v) => v.technicalBias),
+    baseReturnPct: m((v) => v.baseReturnPct),
+    bullReturnPct: Math.max(...views.map((v) => v.bullReturnPct)),
+    bearReturnPct: Math.min(...views.map((v) => v.bearReturnPct)),
+    confidence: m((v) => v.confidence),
+  };
+}
+
+/**
+ * Runs BOTH paid models in parallel (DeepSeek + GPT-4o-mini) and averages their
+ * numeric calls, keeping each model's note for transparency. Both draw from the
+ * shared paid token budget; once it is exhausted the whole ensemble downgrades
+ * to a single free-model call.
+ */
+export async function runEnsemble(input: EnsembleInput): Promise<EnsembleResult> {
+  const system = ENSEMBLE_SYSTEM(input.horizonSessions);
+  const user = JSON.stringify(input);
+
+  if (process.env.OPENROUTER_API_KEY && paidBudgetAvailable()) {
+    const results = await Promise.all(
+      paidModels().map((model) =>
+        openrouterModel(model, true, system, user, 500, true)
+          .then((t) => parseModelView(model, t))
+          .catch(() => null)
+      )
+    );
+    const views = results.filter((v): v is EnsembleModelView => v !== null);
+    if (views.length > 0) {
+      return { source: "ensemble", models: views, ...average(views) };
+    }
+  }
+
+  // Budget spent or paid failed: one free-model call.
+  try {
+    const text = await openrouterModel(freeModel(), false, system, user, 500, true);
+    const view = parseModelView(freeModel(), text);
+    if (view) return { source: "free", models: [view], ...average([view]) };
+  } catch {
+    // fall through
+  }
+
+  return {
+    source: "none",
+    models: [],
+    sentiment: 0,
+    technicalBias: 0,
+    baseReturnPct: 0,
+    bullReturnPct: 0,
+    bearReturnPct: 0,
+    confidence: 0,
+  };
 }
 
 /* ---- Earnings brief (FREE tier) ---- */

@@ -1,15 +1,14 @@
-import { cachedLlmSentiment } from "@/lib/analysis/llm";
+import { getAiAnalysis } from "@/lib/analysis/ai";
+import { detectShape, type ChartShape } from "@/lib/analysis/patterns";
 import { computeIndicators } from "@/lib/analysis/technical";
-import { scoreNewsSentiment } from "@/lib/analysis/sentiment";
-import { getChart, getFundamentals, getNews } from "@/lib/market";
+import { getChart } from "@/lib/market";
+import type { EnsembleModelView } from "@/lib/analysis/llm";
 
 /**
- * Pattern read + forward projection for daily charts.
- *
- * Patterns are detected from price/volume structure; the projection drifts
- * the last price forward using a transparent blend of momentum, news
- * sentiment and analyst-target pull, with a ±1σ volatility cone. It is a
- * statistical extrapolation for orientation · not a price prediction.
+ * Forward projection for daily charts, expressed as concrete base / bull / bear
+ * target prices over a chosen horizon. The path is driven by the dual-model AI
+ * ensemble (averaged) and bounded by the detected chart pattern; a plain
+ * sentence explains it. Orientation, not a guarantee.
  */
 
 export interface DetectedPattern {
@@ -19,22 +18,34 @@ export interface DetectedPattern {
 }
 
 export interface ProjectionPoint {
-  time: number; // epoch seconds (future trading days)
-  mid: number;
-  upper: number;
-  lower: number;
+  time: number; // epoch seconds (future trading session)
+  base: number;
+  bull: number;
+  bear: number;
 }
 
 export interface ForecastResult {
   symbol: string;
   horizonDays: number;
-  driftDailyPct: number;
-  sentimentScore: number;
+  source: "ensemble" | "free" | "none";
+  last: number;
+  basePct: number;
+  bullPct: number;
+  bearPct: number;
+  baseTarget: number;
+  bullTarget: number;
+  bearTarget: number;
+  confidence: number;
+  modelViews: EnsembleModelView[];
+  shape: ChartShape | null;
   patterns: DetectedPattern[];
   projection: ProjectionPoint[];
+  summary: string;
+  sentimentScore: number;
   generatedAt: number;
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
 function nextTradingDay(epochSec: number): number {
@@ -53,163 +64,123 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
   const t = computeIndicators(candles);
   if (!t || candles.length < 60) throw new Error("Insufficient history for projection");
 
-  // Sentiment + analyst pull (both served from existing caches).
-  let sentimentScore = 0;
-  let analystUpsidePct: number | undefined;
-  let name: string | undefined;
-  try {
-    const f = await getFundamentals(symbol);
-    name = f.name;
-    if (f.targetMeanPrice) analystUpsidePct = ((f.targetMeanPrice - t.last) / t.last) * 100;
-  } catch {
-    // indices/ETFs · no fundamentals
-  }
-  try {
-    const news = (await getNews(`${name ?? symbol} stock`)).slice(0, 25);
-    // Prefer the AI materiality-weighted read (shared cache with the
-    // Intelligence Score); fall back to the keyword lexicon.
-    const llm = await cachedLlmSentiment(
-      symbol,
-      name ?? symbol,
-      news.map((n) => n.title)
-    ).catch(() => null);
-    sentimentScore = llm?.score ?? scoreNewsSentiment(news).score;
-  } catch {
-    // news down · purely technical projection
+  const shape = detectShape(candles);
+  const ai = await getAiAnalysis(symbol).catch(() => null);
+
+  // Scale the AI's ~45-session view to the requested horizon; fall back to a
+  // momentum + volatility estimate when no model output is available.
+  let basePct: number;
+  let bullPct: number;
+  let bearPct: number;
+  let source: ForecastResult["source"] = "none";
+  let confidence = 0;
+
+  if (ai && ai.source !== "none") {
+    const f = horizonDays / ai.horizonSessions;
+    basePct = ai.baseReturnPct * f;
+    bullPct = ai.bullReturnPct * f;
+    bearPct = ai.bearReturnPct * f;
+    source = ai.source;
+    confidence = ai.confidence;
+  } else {
+    const mom =
+      0.5 * ((t.return3M ?? 0) / 63) + 0.3 * ((t.return1M ?? 0) / 21) + 0.2 * ((t.return6M ?? 0) / 126);
+    basePct = clamp(mom * horizonDays, -25, 25);
+    const sigma = (t.annualizedVolatility ?? 25) * Math.sqrt(horizonDays / 252);
+    bullPct = basePct + sigma;
+    bearPct = basePct - sigma;
   }
 
-  /* ---- Pattern detection ---- */
-  const patterns: DetectedPattern[] = [];
-  const closes = candles.map((c) => c.close);
-  const highs = candles.map((c) => c.high);
-  const lows = candles.map((c) => c.low);
+  // Keep bull >= base >= bear sane.
+  bullPct = Math.max(bullPct, basePct + 0.5);
+  bearPct = Math.min(bearPct, basePct - 0.5);
 
-  if (t.sma50 && t.sma200) {
-    const golden = t.sma50 > t.sma200;
-    patterns.push({
-      name: golden ? "Golden-cross regime" : "Death-cross regime",
-      signal: golden ? "bullish" : "bearish",
-      detail: `50-DMA ${golden ? "above" : "below"} 200-DMA · ${golden ? "structural uptrend" : "structural downtrend"}.`,
-    });
-    const above200 = t.last > t.sma200;
-    patterns.push({
-      name: above200 ? "Above 200-DMA" : "Below 200-DMA",
-      signal: above200 ? "bullish" : "bearish",
-      detail: `Price ${(((t.last - t.sma200) / t.sma200) * 100).toFixed(1)}% ${above200 ? "above" : "below"} the long-term average.`,
-    });
-  }
+  const last = t.last;
+  const baseTarget = round2(last * (1 + basePct / 100));
+  const bullTarget = round2(last * (1 + bullPct / 100));
+  const bearTarget = round2(last * (1 + bearPct / 100));
 
-  // Swing structure over the last ~40 bars: higher-highs/higher-lows?
-  if (candles.length >= 40) {
-    const win = 40;
-    const h1 = Math.max(...highs.slice(-win, -win / 2));
-    const h2 = Math.max(...highs.slice(-win / 2));
-    const l1 = Math.min(...lows.slice(-win, -win / 2));
-    const l2 = Math.min(...lows.slice(-win / 2));
-    if (h2 > h1 && l2 > l1) {
-      patterns.push({
-        name: "Ascending channel",
-        signal: "bullish",
-        detail: "Higher highs and higher lows over the last two months.",
-      });
-    } else if (h2 < h1 && l2 < l1) {
-      patterns.push({
-        name: "Descending channel",
-        signal: "bearish",
-        detail: "Lower highs and lower lows over the last two months.",
-      });
-    } else if (h2 < h1 && l2 > l1) {
-      patterns.push({
-        name: "Symmetrical squeeze",
-        signal: "neutral",
-        detail: "Range is compressing · breakouts from squeezes tend to travel.",
-      });
-    }
-  }
-
-  if (t.rsi14 !== undefined) {
-    if (t.rsi14 > 70)
-      patterns.push({ name: "Overbought (RSI)", signal: "bearish", detail: `RSI ${t.rsi14.toFixed(0)} · stretched; pullback risk elevated.` });
-    else if (t.rsi14 < 30)
-      patterns.push({ name: "Oversold (RSI)", signal: "bullish", detail: `RSI ${t.rsi14.toFixed(0)} · washed out; bounce-prone zone.` });
-  }
-  if (t.macdHistogram !== undefined) {
-    patterns.push({
-      name: t.macdHistogram > 0 ? "MACD momentum up" : "MACD momentum down",
-      signal: t.macdHistogram > 0 ? "bullish" : "bearish",
-      detail: "MACD histogram " + (t.macdHistogram > 0 ? "positive." : "negative."),
-    });
-  }
-  if (t.pctFrom52wHigh !== undefined && t.pctFrom52wHigh > -3) {
-    patterns.push({
-      name: "52-week breakout watch",
-      signal: "bullish",
-      detail: "Within 3% of the 52-week high · fresh highs attract momentum flows.",
-    });
-  }
-  if (t.support && Math.abs(t.last - t.support) / t.last < 0.02) {
-    patterns.push({
-      name: "Testing support",
-      signal: "neutral",
-      detail: `Sitting on the ₹${t.support.toFixed(0)} support shelf · hold or break decides the next leg.`,
-    });
-  }
-  if (t.resistance && Math.abs(t.last - t.resistance) / t.last < 0.02) {
-    patterns.push({
-      name: "Testing resistance",
-      signal: "neutral",
-      detail: `Pressing the ₹${t.resistance.toFixed(0)} ceiling · a close above opens room higher.`,
-    });
-  }
-  if (t.volumeRatio !== undefined && t.volumeRatio > 1.4) {
-    patterns.push({
-      name: "Volume surge",
-      signal: "neutral",
-      detail: `5-day volume running ${((t.volumeRatio - 1) * 100).toFixed(0)}% above the 20-day norm · conviction behind the current move.`,
-    });
-  }
-  if (Math.abs(sentimentScore) > 0.25) {
-    patterns.push({
-      name: sentimentScore > 0 ? "Bullish news flow" : "Bearish news flow",
-      signal: sentimentScore > 0 ? "bullish" : "bearish",
-      detail: "Recent headlines skew " + (sentimentScore > 0 ? "positive." : "negative."),
-    });
-  }
-
-  /* ---- Projection ---- */
-  const ret = (days: number, value?: number) =>
-    value !== undefined ? value / 100 / days : 0;
-  const momentumDrift =
-    0.4 * ret(63, t.return3M) + 0.3 * ret(21, t.return1M) + 0.3 * ret(126, t.return6M);
-  const sentimentDrift = sentimentScore * 0.0006;
-  const analystDrift =
-    analystUpsidePct !== undefined ? clamp(analystUpsidePct / 100 / 252, -0.0006, 0.0006) : 0;
-  const drift = clamp(momentumDrift * 0.6 + sentimentDrift + analystDrift, -0.0035, 0.0035);
-
-  const sigmaDaily = (t.annualizedVolatility ?? 25) / 100 / Math.sqrt(252);
-  const lastCandle = candles[candles.length - 1];
-
+  // Projection cone: linear glide from today to each horizon target.
   const projection: ProjectionPoint[] = [];
-  let time = lastCandle.time;
+  let time = candles[candles.length - 1].time;
   for (let d = 1; d <= horizonDays; d++) {
     time = nextTradingDay(time);
-    const mid = t.last * Math.pow(1 + drift, d);
-    const band = mid * sigmaDaily * Math.sqrt(d);
+    const f = d / horizonDays;
     projection.push({
       time,
-      mid: Math.round(mid * 100) / 100,
-      upper: Math.round((mid + band) * 100) / 100,
-      lower: Math.round((mid - band) * 100) / 100,
+      base: round2(last * (1 + (basePct * f) / 100)),
+      bull: round2(last * (1 + (bullPct * f) / 100)),
+      bear: round2(last * (1 + (bearPct * f) / 100)),
     });
   }
+
+  // Indicator pattern chips (kept alongside the geometric shape).
+  const sentimentScore = ai?.sentiment ?? 0;
+  const patterns = indicatorPatterns(t, sentimentScore);
+
+  const months = Math.round((horizonDays / 21) * 10) / 10;
+  const dir = basePct >= 0 ? "+" : "";
+  const summary =
+    `${source === "ensemble" ? "Both AI models" : source === "free" ? "The AI model" : "A momentum model"} ` +
+    `project about ${dir}${basePct.toFixed(1)}% over the next ~${months} months, a base target near ` +
+    `₹${baseTarget.toFixed(0)}. Bull case ₹${bullTarget.toFixed(0)} (+${bullPct.toFixed(1)}%), bear case ` +
+    `₹${bearTarget.toFixed(0)} (${bearPct.toFixed(1)}%).` +
+    (shape ? ` Chart shape: ${shape.shape}. ${shape.expectation}` : "");
 
   return {
     symbol,
     horizonDays,
-    driftDailyPct: Math.round(drift * 10000) / 100,
-    sentimentScore: Math.round(sentimentScore * 100) / 100,
+    source,
+    last: round2(last),
+    basePct: round2(basePct),
+    bullPct: round2(bullPct),
+    bearPct: round2(bearPct),
+    baseTarget,
+    bullTarget,
+    bearTarget,
+    confidence,
+    modelViews: ai?.models ?? [],
+    shape,
     patterns,
     projection,
+    summary,
+    sentimentScore: round2(sentimentScore),
     generatedAt: Date.now(),
   };
+}
+
+function indicatorPatterns(
+  t: NonNullable<ReturnType<typeof computeIndicators>>,
+  sentimentScore: number
+): DetectedPattern[] {
+  const p: DetectedPattern[] = [];
+  if (t.sma50 && t.sma200) {
+    const golden = t.sma50 > t.sma200;
+    p.push({
+      name: golden ? "Golden-cross regime" : "Death-cross regime",
+      signal: golden ? "bullish" : "bearish",
+      detail: `50-DMA ${golden ? "above" : "below"} 200-DMA.`,
+    });
+  }
+  if (t.rsi14 !== undefined) {
+    if (t.rsi14 > 70) p.push({ name: "Overbought (RSI)", signal: "bearish", detail: `RSI ${t.rsi14.toFixed(0)}; pullback risk.` });
+    else if (t.rsi14 < 30) p.push({ name: "Oversold (RSI)", signal: "bullish", detail: `RSI ${t.rsi14.toFixed(0)}; bounce-prone.` });
+  }
+  if (t.macdHistogram !== undefined)
+    p.push({
+      name: t.macdHistogram > 0 ? "MACD momentum up" : "MACD momentum down",
+      signal: t.macdHistogram > 0 ? "bullish" : "bearish",
+      detail: `MACD histogram ${t.macdHistogram > 0 ? "positive" : "negative"}.`,
+    });
+  if (t.pctFrom52wHigh !== undefined && t.pctFrom52wHigh > -3)
+    p.push({ name: "52-week breakout watch", signal: "bullish", detail: "Within 3% of the 52-week high." });
+  if (t.volumeRatio !== undefined && t.volumeRatio > 1.4)
+    p.push({ name: "Volume surge", signal: "neutral", detail: `5-day volume ${((t.volumeRatio - 1) * 100).toFixed(0)}% above norm.` });
+  if (Math.abs(sentimentScore) > 0.25)
+    p.push({
+      name: sentimentScore > 0 ? "Bullish news flow" : "Bearish news flow",
+      signal: sentimentScore > 0 ? "bullish" : "bearish",
+      detail: `Headlines skew ${sentimentScore > 0 ? "positive" : "negative"}.`,
+    });
+  return p;
 }

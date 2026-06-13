@@ -1,5 +1,5 @@
 import { handle } from "@/lib/api-route";
-import { getPaidBudgetStatus } from "@/lib/analysis/llm";
+import { getPaidBudgetStatus, freeModel, paidModels } from "@/lib/analysis/llm";
 
 export const dynamic = "force-dynamic";
 
@@ -9,8 +9,8 @@ export function GET() {
     const budget = getPaidBudgetStatus();
     return {
       provider: process.env.OPENROUTER_API_KEY ? "openrouter" : "none",
-      freeModel: process.env.OPENROUTER_FREE_MODEL ?? null,
-      paidModel: process.env.OPENROUTER_PAID_MODEL ?? null,
+      freeModel: process.env.OPENROUTER_API_KEY ? freeModel() : null,
+      paidModels: process.env.OPENROUTER_API_KEY ? paidModels() : [],
       paidBudget: {
         ...budget,
         remaining: Math.max(0, budget.limit - budget.tokensUsed),

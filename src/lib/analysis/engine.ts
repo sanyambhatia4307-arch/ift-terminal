@@ -1,10 +1,7 @@
+import { getAiAnalysis, type AiAnalysis } from "@/lib/analysis/ai";
+import type { EnsembleModelView } from "@/lib/analysis/llm";
 import { computeIndicators, type TechnicalIndicators } from "@/lib/analysis/technical";
 import { scoreNewsSentiment, type SentimentResult } from "@/lib/analysis/sentiment";
-import {
-  cachedLlmSentiment,
-  generateNarrative,
-  type LlmSentiment,
-} from "@/lib/analysis/llm";
 import { getChart, getFundamentals, getNews } from "@/lib/market";
 import type { FundamentalsData, NewsItem } from "@/types/market";
 
@@ -56,6 +53,8 @@ export interface AnalysisResult {
   narrative: string;
   narrativeSource: "ai" | "rules";
   sentimentSource: "ai" | "lexicon";
+  aiSource: "ensemble" | "free" | "none";
+  modelViews: EnsembleModelView[];
   generatedAt: number;
 }
 
@@ -199,16 +198,17 @@ function sentimentPillar(
   s: SentimentResult,
   f: FundamentalsData | null,
   newsCount: number,
-  llm: LlmSentiment | null
+  ai: AiAnalysis | null
 ): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
-  if (llm) {
-    // NLP read of the headlines · materiality-weighted, preferred over lexicon.
-    const sc = clamp100(50 + llm.score * 38);
+  const aiUsable = ai && ai.source !== "none" && ai.models.length > 0;
+  if (aiUsable) {
+    // Dual-model averaged sentiment, materiality-weighted, preferred over lexicon.
+    const sc = clamp100(50 + ai.sentiment * 38);
     b.scores.push(sc);
-    (llm.score >= 0 ? b.drivers : b.cautions).push(`AI news read: ${llm.rationale}`);
-    for (const p of llm.positives.slice(0, 2)) b.drivers.push(p);
-    for (const n of llm.negatives.slice(0, 2)) b.cautions.push(n);
+    (ai.sentiment >= 0 ? b.drivers : b.cautions).push(
+      `AI read (${ai.models.length === 2 ? "2 models" : "1 model"}): ${ai.models[0].note}`
+    );
   } else if (newsCount > 0) {
     const sc = clamp100(50 + s.score * 38);
     b.scores.push(sc);
@@ -278,11 +278,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     // News source down · sentiment pillar marks itself unavailable.
   }
   const sentiment = scoreNewsSentiment(news);
-  const llmSent = await cachedLlmSentiment(
-    symbol,
-    fundamentals?.name ?? symbol,
-    news.map((n) => n.title)
-  ).catch(() => null);
+  const ai = await getAiAnalysis(symbol).catch(() => null);
 
   const pillars: PillarScore[] = [
     valuationPillar(fundamentals, technicals.last),
@@ -290,7 +286,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     qualityPillar(fundamentals),
     momentumPillar(technicals),
     strengthPillar(fundamentals),
-    sentimentPillar(sentiment, fundamentals, news.length, llmSent),
+    sentimentPillar(sentiment, fundamentals, news.length, ai),
     riskPillar(technicals, fundamentals),
   ];
 
@@ -329,20 +325,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     ? ((fundamentals.targetMeanPrice - technicals.last) / technicals.last) * 100
     : undefined;
 
-  const llmNote = await generateNarrative({
-    symbol,
-    name: fundamentals?.name,
-    overallScore,
-    stance,
-    pillars: pillars.map((p) => ({
-      pillar: p.name,
-      score: p.score,
-      drivers: p.drivers,
-      cautions: p.cautions,
-    })),
-    technicals,
-    headlines: news.slice(0, 8).map((n) => n.title),
-  });
+  const aiNote = ai && ai.source !== "none" && ai.models.length > 0 ? ai.models[0].note : null;
 
   const rulesNarrative =
     `${symbol} scores ${overallScore}/100 (${stance.toLowerCase()}). ` +
@@ -367,9 +350,11 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
       upsidePercent: upside,
       numberOfAnalysts: fundamentals?.numberOfAnalysts,
     },
-    narrative: llmNote ?? rulesNarrative,
-    narrativeSource: llmNote ? "ai" : "rules",
-    sentimentSource: llmSent ? "ai" : "lexicon",
+    narrative: aiNote ?? rulesNarrative,
+    narrativeSource: aiNote ? "ai" : "rules",
+    sentimentSource: ai && ai.source !== "none" ? "ai" : "lexicon",
+    aiSource: ai?.source ?? "none",
+    modelViews: ai?.models ?? [],
     generatedAt: Date.now(),
   };
 }
