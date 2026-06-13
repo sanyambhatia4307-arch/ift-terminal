@@ -12,6 +12,7 @@ import {
   ListChecks,
   Newspaper,
   Rocket,
+  Telescope,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,7 @@ const NAV: Array<{
 }> = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, tone: "amber" },
   { href: "/markets", label: "Markets", icon: Globe2, tone: "blue" },
+  { href: "/screener", label: "Screener", icon: Telescope, tone: "violet" },
   { href: "/intraday", label: "Intraday", icon: Crosshair, tone: "green" },
   { href: "/earnings", label: "Earnings", icon: CalendarClock, tone: "violet" },
   { href: "/compare", label: "Compare", icon: GitCompareArrows, tone: "cyan" },

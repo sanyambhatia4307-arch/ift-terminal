@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import type { AnalysisResult } from "@/lib/analysis/engine";
 import type { IndicesPayload } from "@/lib/market";
+import type { ScreenerPayload } from "@/lib/screener";
 import type {
   ChartResult,
   FundamentalsData,
@@ -101,6 +102,15 @@ export function useNews(query?: string) {
       get<NewsItem[]>(`/api/news${query ? `?q=${encodeURIComponent(query)}` : ""}`),
     refetchInterval: 5 * 60 * 1000,
     staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useScreener() {
+  return useQuery({
+    queryKey: ["screener"],
+    queryFn: () => get<ScreenerPayload>("/api/screener"),
+    staleTime: 15 * 60 * 1000,
+    refetchInterval: 30 * 60 * 1000,
   });
 }
 

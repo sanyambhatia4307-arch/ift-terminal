@@ -28,6 +28,7 @@ const CODE_TONES: Record<string, ToneName> = {
   PULS: "cyan", SECT: "cyan", COMP: "cyan", PERF: "cyan", FX: "cyan", DATA: "cyan",
   // Intelligence & earnings
   INTL: "violet", ENGN: "violet", PICK: "violet", EARN: "violet", ARCH: "violet",
+  SCRN: "violet", RANK: "violet", FILT: "cyan",
   // Trading
   INTR: "green", PLAN: "green", GAIN: "green",
   LOSE: "red",
