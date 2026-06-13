@@ -3,13 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
+  AreaSeries,
   CandlestickSeries,
   ColorType,
   createChart,
+  createSeriesMarkers,
   HistogramSeries,
   LineSeries,
   LineStyle,
   type IChartApi,
+  type SeriesMarker,
   type UTCTimestamp,
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
@@ -23,7 +26,7 @@ import type { ForecastResult } from "@/lib/analysis/forecast";
 const RANGES: Array<{ label: string; range: string; interval: string; horizon?: number }> = [
   { label: "1D", range: "1d", interval: "5m" },
   { label: "5D", range: "5d", interval: "15m" },
-  { label: "1M", range: "1mo", interval: "1h" },
+  { label: "1M", range: "1mo", interval: "1d", horizon: 12 },
   { label: "6M", range: "6mo", interval: "1d", horizon: 22 },
   { label: "1Y", range: "1y", interval: "1d", horizon: 45 },
   { label: "5Y", range: "5y", interval: "1wk" },
@@ -77,14 +80,14 @@ export function PriceChart({ symbol }: { symbol: string }) {
       localization: intradayInterval ? { timeFormatter: (t: number) => `${istTime(t)} IST` } : {},
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#5b6b82",
+        textColor: "#8b9bb5",
         fontFamily: "var(--font-plex-mono), monospace",
         fontSize: 10,
         attributionLogo: false,
       },
       grid: {
-        vertLines: { color: "rgba(100,116,139,0.14)" },
-        horzLines: { color: "rgba(100,116,139,0.14)" },
+        vertLines: { color: "rgba(148,163,184,0.08)" },
+        horzLines: { color: "rgba(148,163,184,0.08)" },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: {
@@ -97,11 +100,11 @@ export function PriceChart({ symbol }: { symbol: string }) {
     chartRef.current = chart;
 
     const candles = chart.addSeries(CandlestickSeries, {
-      upColor: "#0e9f6e",
-      downColor: "#dc3d43",
+      upColor: "#26d98a",
+      downColor: "#f4606a",
       borderVisible: false,
-      wickUpColor: "#0e9f6e",
-      wickDownColor: "#dc3d43",
+      wickUpColor: "#26d98a",
+      wickDownColor: "#f4606a",
     });
     candles.setData(
       data.candles.map((c) => ({
@@ -124,15 +127,16 @@ export function PriceChart({ symbol }: { symbol: string }) {
         data.candles.map((c) => ({
           time: c.time as UTCTimestamp,
           value: c.volume ?? 0,
-          color: c.close >= c.open ? "rgba(14,159,110,0.35)" : "rgba(220,61,67,0.35)",
+          color: c.close >= c.open ? "rgba(38,217,138,0.35)" : "rgba(244,96,106,0.35)",
         }))
       );
     }
 
     if (showForecast && forecast && horizon) {
       const lastReal = data.candles[data.candles.length - 1];
+      const candleMarkers: SeriesMarker<UTCTimestamp>[] = [];
 
-      // Pattern helper trendlines (support / resistance).
+      // Pattern helper trendlines, projected forward to the breakout / apex.
       const drawLine = (
         ln: { p1: { time: number; price: number }; p2: { time: number; price: number } } | undefined,
         color: string
@@ -140,7 +144,7 @@ export function PriceChart({ symbol }: { symbol: string }) {
         if (!ln) return;
         const s = chart.addSeries(LineSeries, {
           color,
-          lineWidth: 1,
+          lineWidth: 2,
           lineStyle: LineStyle.Dashed,
           priceLineVisible: false,
           lastValueVisible: false,
@@ -151,20 +155,35 @@ export function PriceChart({ symbol }: { symbol: string }) {
           { time: ln.p2.time as UTCTimestamp, value: ln.p2.price },
         ]);
       };
-      drawLine(forecast.shape?.resistance, "rgba(220,61,67,0.55)");
-      drawLine(forecast.shape?.support, "rgba(14,159,110,0.55)");
+      drawLine(forecast.shape?.resistance, "rgba(244,96,106,0.6)");
+      drawLine(forecast.shape?.support, "rgba(38,217,138,0.6)");
 
-      // Projection: base / bull / bear glide paths.
+      // Forecast zone: faint shading under the bull rail (future region only),
+      // delineating where history ends and the projection begins.
+      const zone = chart.addSeries(AreaSeries, {
+        lineColor: "transparent",
+        topColor: "rgba(91,141,239,0.18)",
+        bottomColor: "rgba(91,141,239,0.02)",
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+      zone.setData([
+        { time: lastReal.time as UTCTimestamp, value: lastReal.close },
+        ...forecast.projection.map((p) => ({ time: p.time as UTCTimestamp, value: p.bull })),
+      ]);
+
+      // Projection glide paths: solid base (bold), bull / bear rails.
       const anchor = (v: number) => ({ time: lastReal.time as UTCTimestamp, value: v });
-      const paths: Array<[keyof typeof forecast.projection[0], string, LineStyle]> = [
-        ["bull", "rgba(14,159,110,0.5)", LineStyle.Dotted],
-        ["base", "rgba(176,125,24,0.85)", LineStyle.Dashed],
-        ["bear", "rgba(220,61,67,0.5)", LineStyle.Dotted],
+      const paths: Array<[keyof (typeof forecast.projection)[0], string, number, LineStyle]> = [
+        ["bull", "rgba(38,217,138,0.85)", 1, LineStyle.Dashed],
+        ["base", "rgba(224,169,58,1)", 3, LineStyle.Solid],
+        ["bear", "rgba(244,96,106,0.85)", 1, LineStyle.Dashed],
       ];
-      for (const [key, color, style] of paths) {
+      for (const [key, color, width, style] of paths) {
         const s = chart.addSeries(LineSeries, {
           color,
-          lineWidth: key === "base" ? 2 : 1,
+          lineWidth: width as 1 | 2 | 3 | 4,
           lineStyle: style,
           priceLineVisible: false,
           lastValueVisible: false,
@@ -176,15 +195,48 @@ export function PriceChart({ symbol }: { symbol: string }) {
         ]);
       }
 
+      // "NOW" divider marker where history ends and the projection begins.
+      candleMarkers.push({
+        time: lastReal.time as UTCTimestamp,
+        position: "belowBar",
+        color: "#8b9bb5",
+        shape: "arrowUp",
+        text: "NOW",
+      });
+
+      // Breakout trigger: bold level + an arrow in the expected direction.
+      const shp = forecast.shape;
+      if (shp?.breakoutLevel && shp.breakoutDirection) {
+        const up = shp.breakoutDirection === "up";
+        const brkColor = up ? "rgba(38,217,138,1)" : "rgba(244,96,106,1)";
+        candles.createPriceLine({
+          price: shp.breakoutLevel,
+          color: brkColor,
+          lineWidth: 2,
+          lineStyle: LineStyle.LargeDashed,
+          axisLabelVisible: true,
+          title: up ? "BRK ▲" : "BRK ▼",
+        });
+        candleMarkers.push({
+          time: lastReal.time as UTCTimestamp,
+          position: up ? "aboveBar" : "belowBar",
+          color: brkColor,
+          shape: up ? "arrowUp" : "arrowDown",
+          text: `BREAK ${up ? "▲" : "▼"} ₹${shp.breakoutLevel.toFixed(0)}`,
+        });
+      }
+
       // Target price lines with axis labels.
       const targets: Array<[number, string, string]> = [
-        [forecast.bullTarget, "rgba(14,159,110,0.9)", "BULL"],
-        [forecast.baseTarget, "rgba(176,125,24,0.95)", "BASE"],
-        [forecast.bearTarget, "rgba(220,61,67,0.9)", "BEAR"],
+        [forecast.bullTarget, "rgba(38,217,138,0.95)", "BULL"],
+        [forecast.baseTarget, "rgba(224,169,58,1)", "BASE"],
+        [forecast.bearTarget, "rgba(244,96,106,0.95)", "BEAR"],
       ];
       for (const [price, color, title] of targets) {
         candles.createPriceLine({ price, color, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title });
       }
+
+      if (candleMarkers.length) createSeriesMarkers(candles, candleMarkers);
     }
 
     chart.timeScale().fitContent();
@@ -251,7 +303,26 @@ export function PriceChart({ symbol }: { symbol: string }) {
                       </span>
                     </div>
                     <p className="mt-1 text-[11px] leading-snug text-foreground/85">{shape.expectation}</p>
-                    <p className="num mt-0.5 text-[9px] leading-snug opacity-70">{shape.description}</p>
+                    {shape.breakoutLevel && shape.breakoutDirection && (
+                      <div className="num mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+                        <span className="rounded-[2px] border border-current/40 px-1 py-px uppercase tracking-wide">
+                          {shape.breakoutDirection === "up" ? "Breakout ▲" : "Breakdown ▼"}
+                        </span>
+                        <span>
+                          close {shape.breakoutDirection === "up" ? "above" : "below"} ₹
+                          {shape.breakoutLevel.toFixed(0)}
+                        </span>
+                        {shape.targetPrice !== undefined && (
+                          <span className="opacity-80">
+                            → measured move ₹{shape.targetPrice.toFixed(0)}
+                            {shape.targetPct !== undefined
+                              ? ` (${shape.targetPct >= 0 ? "+" : ""}${shape.targetPct.toFixed(1)}%)`
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <p className="num mt-1 text-[9px] leading-snug opacity-70">{shape.description}</p>
                   </div>
                 )}
 
