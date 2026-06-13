@@ -21,6 +21,7 @@ const SOURCES: Array<[string, string, string, string, string]> = [
   ["Results reactions", "NSE event-calendar dates + Yahoo prices/EPS", "12h cache", "Historical", "Last 8 prints: day-after move + EPS surprise"],
   ["Bulk & block deals", "NSE snapshot-capital-market-largedeal", "5min poll", "Live (session)", "Institutional prints with client, side, value"],
   ["Portfolio P&L", "Local holdings × live Yahoo quotes", "45s poll", "≤15min", "Holdings persist in your browser only"],
+  ["Compare", "Live quotes + fundamentals + 1Y charts (Yahoo)", "on demand", "≤15min", "Up to 4 symbols, performance rebased to 100"],
   ["Intraday levels & plan", "Yahoo 5m chart + NSE status", "60s poll", "≤15min", "Pivots/CPR from prior session; OR from live session"],
   ["IPO dossiers", "Editorial research (dated) + live Google News per company", "News: 10min", "Dossier static · news live", "No free machine-readable DRHP feed exists"],
   ["Commodities", "Yahoo futures + NSE ETFs, live USD/INR conversion", "60s poll", "≤15min", "₹/unit per Indian convention; rows open full research view"],
@@ -110,6 +111,21 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
   ],
 ];
 
+const MODULES: Array<[string, string, string]> = [
+  // [code, module, what it does]
+  ["HOME", "Dashboard", "Indices (clickable, with sparklines), watchlist strip, NIFTY 50 movers, Top Picks scan, Market Pulse (global tape + FII/DII + anomalies), breadth, sector bars."],
+  ["MKT", "Markets", "Every NSE index — click to expand constituents; top movers; sector chart; live bulk & block deals."],
+  ["INTR", "Intraday", "Index-derivative levels: 5-min chart with pivots/CPR/opening-range, a rule-based trade plan with entry/stop/targets and per-lot P&L."],
+  ["EARN", "Earnings", "Upcoming NIFTY-50 results calendar; expand a row for an AI results brief + the last-8-prints reaction history and EPS surprises."],
+  ["COMP", "Compare", "Up to four stocks side-by-side: fundamentals table + 1-year relative performance rebased to 100."],
+  ["IPO", "IPOs", "Pipeline dossiers — valuation, structure, DRHP risk flags, expected listing-gain setup, live news per name."],
+  ["CMDT", "Commodities", "Global futures + Indian ETFs in ₹/unit; click any row for the full research view."],
+  ["PORT", "Portfolio", "Add holdings (browser-local) for live P&L: total, day, per-position weight and return."],
+  ["WLST", "Watchlist", "Your tracked securities with live quotes; add via ⌘K or the Watch button on any stock."],
+  ["NWS", "News", "Aggregated Indian market coverage with topic filters and search."],
+  ["STK", "Stock research", "Per security: chart with projection + patterns, Intelligence Score, fundamentals + quarterly trend, management commentary + reactions, news."],
+];
+
 function SectionTable({ rows, headers }: { rows: string[][]; headers: string[] }) {
   return (
     <div className="overflow-x-auto">
@@ -197,6 +213,22 @@ export default function GuidePage() {
               feature falls back to its deterministic non-AI version, and the labels in each panel
               header tell you which mode produced what you're reading.
             </p>
+          </div>
+        </Panel>
+
+        <Panel code="NAV" title="Platform modules" className="xl:col-span-2">
+          <div className="grid grid-cols-1 gap-x-5 gap-y-1.5 p-3 md:grid-cols-2">
+            {MODULES.map(([code, name, desc]) => (
+              <div key={code} className="flex gap-2 text-[11px] leading-snug">
+                <span className="num shrink-0 rounded-[2px] bg-primary/10 px-1 py-px text-[9px] font-semibold tracking-widest text-primary">
+                  {code}
+                </span>
+                <span>
+                  <b className="text-foreground">{name}</b>{" "}
+                  <span className="text-muted-foreground">— {desc}</span>
+                </span>
+              </div>
+            ))}
           </div>
         </Panel>
 
