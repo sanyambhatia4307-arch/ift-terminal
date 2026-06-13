@@ -35,6 +35,7 @@ const CODE_TONES: Record<string, ToneName> = {
   DEAL: "orange", ENRG: "orange",
   // Personal
   PORT: "teal", HOLD: "teal", WL: "teal", WLST: "teal", ETF: "teal", READ: "teal",
+  RISK: "red", SIGS: "amber", ALRT: "orange", FIN: "blue", PEER: "cyan",
   // IPO
   IPO: "pink",
 };

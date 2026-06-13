@@ -6,6 +6,7 @@ import { ListChecks, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
+import { WatchlistIntel } from "@/components/watchlist/WatchlistIntel";
 import { Button } from "@/components/ui/button";
 import { FlashValue } from "@/components/ui/flash";
 import { Panel } from "@/components/ui/panel";
@@ -83,6 +84,8 @@ export default function WatchlistPage() {
           <StatTile label="Tracked" numeric={stats.total} format={(n) => String(Math.round(n))} sub="securities" tone="primary" />
         </StatBand>
       )}
+
+      {symbols.length > 0 && <WatchlistIntel quotes={quotes} symbols={symbols} />}
 
       <Panel
         code="WL"

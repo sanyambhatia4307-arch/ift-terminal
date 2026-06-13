@@ -140,19 +140,54 @@ function valuationPillar(
   return { key: "valuation", name: "Valuation", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
 
-function growthPillar(f: FundamentalsData | null): PillarScore {
+function growthPillar(f: FundamentalsData | null, fin?: FinancialsData | null): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
-  if (f?.revenueGrowth != null) {
+
+  // Multi-year CAGR is the durable signal; single-period YoY is noisy.
+  if (fin?.revenueCagr != null && (fin.years?.length ?? 0) >= 3) {
+    const g = fin.revenueCagr;
+    const n = (fin.years?.length ?? 1) - 1;
+    const s = g > 18 ? 88 : g > 12 ? 74 : g > 7 ? 58 : g > 2 ? 44 : 26;
+    b.scores.push(s);
+    (s >= 58 ? b.drivers : b.cautions).push(`Revenue CAGR ${g.toFixed(1)}% over ${n}y`);
+  } else if (f?.revenueGrowth != null) {
     const g = f.revenueGrowth;
     const s = g > 0.18 ? 88 : g > 0.1 ? 72 : g > 0.04 ? 56 : g > 0 ? 44 : 22;
     b.scores.push(s);
     (s >= 56 ? b.drivers : b.cautions).push(`Revenue growth ${pct(g)} YoY`);
   }
-  if (f?.earningsGrowth != null) {
+
+  if (fin?.earningsCagr != null && (fin.years?.length ?? 0) >= 3) {
+    const g = fin.earningsCagr;
+    const s = g > 20 ? 88 : g > 12 ? 74 : g > 5 ? 58 : g > 0 ? 44 : 24;
+    b.scores.push(s);
+    (s >= 58 ? b.drivers : b.cautions).push(`Earnings CAGR ${g.toFixed(1)}%`);
+  } else if (f?.earningsGrowth != null) {
     const g = f.earningsGrowth;
     const s = g > 0.2 ? 88 : g > 0.1 ? 72 : g > 0 ? 54 : 24;
     b.scores.push(s);
     (s >= 54 ? b.drivers : b.cautions).push(`Earnings growth ${pct(g)} YoY`);
+  }
+
+  // Consistency · steady compounders score above lumpy growers.
+  const yrs = fin?.years ?? [];
+  if (yrs.length >= 3) {
+    let pos = 0;
+    let tot = 0;
+    for (let i = 1; i < yrs.length; i++) {
+      const a = yrs[i - 1].revenue;
+      const c = yrs[i].revenue;
+      if (a != null && c != null) {
+        tot++;
+        if (c > a) pos++;
+      }
+    }
+    if (tot >= 2) {
+      const ratio = pos / tot;
+      const s = ratio === 1 ? 82 : ratio >= 0.66 ? 62 : ratio >= 0.5 ? 46 : 30;
+      b.scores.push(s);
+      (s >= 60 ? b.drivers : b.cautions).push(`Grew revenue in ${pos} of ${tot} years`);
+    }
   }
   return { key: "growth", name: "Growth", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
 }
@@ -343,7 +378,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
 
   const pillars: PillarScore[] = [
     valuationPillar(fundamentals, technicals.last, secMed),
-    growthPillar(fundamentals),
+    growthPillar(fundamentals, financials),
     qualityPillar(fundamentals, financials),
     momentumPillar(technicals),
     strengthPillar(fundamentals),
