@@ -114,6 +114,15 @@ export function useScreener() {
   });
 }
 
+export function useBetas(symbols: string[]) {
+  return useQuery({
+    queryKey: ["betas", [...symbols].sort().join(",")],
+    queryFn: () => get<Record<string, number>>(`/api/betas?symbols=${encodeURIComponent(symbols.join(","))}`),
+    enabled: symbols.length > 0,
+    staleTime: 6 * 60 * 60 * 1000,
+  });
+}
+
 export function useAnalysis(symbol: string | undefined) {
   return useQuery({
     queryKey: ["analysis", symbol],

@@ -4,6 +4,7 @@ import { Briefcase, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
+import { PortfolioRisk } from "@/components/portfolio/PortfolioRisk";
 import { Button } from "@/components/ui/button";
 import { FlashValue } from "@/components/ui/flash";
 import { Input } from "@/components/ui/input";
@@ -160,6 +161,17 @@ export default function PortfolioPage() {
             </div>
           </Panel>
         </div>
+      )}
+
+      {holdings.length > 0 && (
+        <PortfolioRisk
+          positions={rows.map((r) => ({
+            symbol: r.symbol,
+            value: r.value ?? r.invested,
+            invested: r.invested,
+            pnl: r.pnl,
+          }))}
+        />
       )}
 
       <Panel code="HOLD" title={`Holdings (${holdings.length})`}>
