@@ -77,7 +77,7 @@ export function PriceChart({ symbol }: { symbol: string }) {
         ? { timeFormatter: (t: number) => `${istTime(t)} IST` }
         : {},
       layout: {
-        // lightweight-charts cannot parse oklch()/lab() CSS variables — hex only.
+        // lightweight-charts cannot parse oklch()/lab() CSS variables · hex only.
         background: { type: ColorType.Solid, color: "transparent" },
         textColor: "#5b6b82",
         fontFamily: "var(--font-plex-mono), monospace",
@@ -136,7 +136,7 @@ export function PriceChart({ symbol }: { symbol: string }) {
       );
     }
 
-    // Forward projection — drawn lighter, anchored to the last real close.
+    // Forward projection · drawn lighter, anchored to the last real close.
     if (showForecast && forecast && forecast.projection.length > 0 && horizon) {
       const lastReal = data.candles[data.candles.length - 1];
       const anchor = { time: lastReal.time as UTCTimestamp, value: lastReal.close };

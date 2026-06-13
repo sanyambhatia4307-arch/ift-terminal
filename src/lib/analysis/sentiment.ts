@@ -1,7 +1,7 @@
 import type { NewsItem } from "@/types/market";
 
 /**
- * Lexicon-based headline sentiment. Deliberately simple and transparent —
+ * Lexicon-based headline sentiment. Deliberately simple and transparent ·
  * each headline is scored by bullish/bearish keyword hits so the result
  * is explainable, free, and deterministic.
  */

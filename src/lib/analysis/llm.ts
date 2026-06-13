@@ -5,9 +5,9 @@ import type { TechnicalIndicators } from "@/lib/analysis/technical";
 /**
  * LLM layer with a two-tier OpenRouter setup:
  *
- *   FREE tier  (OPENROUTER_FREE_MODEL, $0)   — earnings briefs, headline
+ *   FREE tier  (OPENROUTER_FREE_MODEL, $0)   · earnings briefs, headline
  *              sentiment NLP. Used liberally; no daily cap.
- *   PAID tier  (OPENROUTER_PAID_MODEL)       — only the Intelligence Score
+ *   PAID tier  (OPENROUTER_PAID_MODEL)       · only the Intelligence Score
  *              narrative, guarded by LLM_PAID_DAILY_TOKENS. When the daily
  *              budget is exhausted the call silently downgrades to FREE.
  *
@@ -260,7 +260,7 @@ export async function generateNarrative(input: NarrativeInput): Promise<string |
       "Write a tight 4-6 sentence analyst note: explain WHY the score is what it is by " +
       "synthesizing the strongest and weakest pillars, reconcile the technical picture with the " +
       "news flow, flag the single biggest risk to the thesis, and mention concrete price levels. " +
-      "Never issue buy/sell commands — explain. Plain text only, no markdown, no preamble, " +
+      "Never issue buy/sell commands · explain. Plain text only, no markdown, no preamble, " +
       "no disclaimers (the UI shows one).",
     context,
     600
@@ -288,7 +288,7 @@ export async function generateEarningsBrief(
       "latest quarterly results, produce a factual three-part brief. Only state what the " +
       "headlines support; if coverage is thin, say so plainly. No advice, no markdown. " +
       'Respond with a JSON object exactly of the shape {"financials": "2-3 sentences on ' +
-      'revenue/profit/margins", "discussions": "2-3 sentences on other material points — ' +
+      'revenue/profit/margins", "discussions": "2-3 sentences on other material points · ' +
       'segments, dividends, orders, outlook", "managementCommentary": "2-3 sentences on what ' +
       'top executives emphasised"}',
     JSON.stringify({
@@ -306,7 +306,7 @@ export async function generateEarningsBrief(
       return obj as EarningsBriefSummary;
     }
   } catch {
-    // malformed — headline-only UI
+    // malformed · headline-only UI
   }
   return null;
 }

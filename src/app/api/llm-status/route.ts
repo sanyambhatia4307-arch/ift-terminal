@@ -3,7 +3,7 @@ import { getPaidBudgetStatus } from "@/lib/analysis/llm";
 
 export const dynamic = "force-dynamic";
 
-/** Paid-tier LLM budget status — check spend headroom at a glance. */
+/** Paid-tier LLM budget status · check spend headroom at a glance. */
 export function GET() {
   return handle(async () => {
     const budget = getPaidBudgetStatus();

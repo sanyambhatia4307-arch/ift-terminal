@@ -2,7 +2,7 @@ import { toneFor } from "@/lib/tones";
 import { cn } from "@/lib/utils";
 
 /**
- * Dense bordered panel — the terminal's basic layout unit.
+ * Dense bordered panel · the terminal's basic layout unit.
  * `code` renders a Bloomberg-style function tag and drives the panel's
  * module hue (chip color + header accent line) via the tone system.
  */

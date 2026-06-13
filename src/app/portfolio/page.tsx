@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Donut, type DonutSegment } from "@/components/ui/donut";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatBand, StatTile } from "@/components/ui/stat-tile";
+import { StatTile } from "@/components/ui/stat-tile";
 import { useQuotes } from "@/hooks/queries";
 import { changeClass, fmt, fmtInrCompact, fmtPct } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -101,7 +101,7 @@ export default function PortfolioPage() {
   const totalPnl = totalValue - totalInvested;
   const totalDayPnl = rows.reduce((a, r) => a + (r.dayPnl ?? 0), 0);
 
-  // Allocation donut — top 6 positions by value, rest grouped as "Others".
+  // Allocation donut · top 6 positions by value, rest grouped as "Others".
   const allocation: DonutSegment[] = (() => {
     const sized = rows
       .map((r) => ({ symbol: r.symbol, value: r.value ?? r.invested }))
@@ -128,8 +128,8 @@ export default function PortfolioPage() {
       />
 
       {holdings.length > 0 && (
-        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.6fr_1fr]">
-          <StatBand cols={4}>
+        <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[1.6fr_1fr]">
+          <div className="stagger grid auto-rows-fr grid-cols-2 gap-2">
             <StatTile label="Invested" numeric={totalInvested} format={fmtInrCompact} tone="neutral" />
             <StatTile label="Current Value" numeric={totalValue} format={fmtInrCompact} tone="primary" />
             <StatTile
@@ -145,9 +145,9 @@ export default function PortfolioPage() {
               format={(n) => `${n >= 0 ? "+" : "−"}${fmtInrCompact(Math.abs(n))}`}
               tone={totalDayPnl >= 0 ? "bull" : "bear"}
             />
-          </StatBand>
+          </div>
           <Panel code="ALLOC" title="Allocation by value">
-            <div className="p-3">
+            <div className="flex h-full items-center p-3">
               {allocation.length > 0 ? (
                 <Donut
                   segments={allocation}
@@ -166,7 +166,7 @@ export default function PortfolioPage() {
         <AddHoldingForm />
         {holdings.length === 0 ? (
           <div className="border-t border-border p-6 text-center text-xs text-muted-foreground">
-            No holdings yet — add your first position above to see live P&L.
+            No holdings yet · add your first position above to see live P&L.
           </div>
         ) : isLoading ? (
           <Skeleton className="m-2 h-40" />

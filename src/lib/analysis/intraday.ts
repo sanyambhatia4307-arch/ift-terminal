@@ -109,7 +109,7 @@ export async function buildIntradayAnalysis(key: string): Promise<IntradayAnalys
     biasReason = "Price is below the central pivot, below the CPR band, and under the 5-min 20-EMA.";
   } else {
     bias = "neutral";
-    biasReason = "Price is inside or chopping around the CPR/pivot zone — no clean directional edge yet.";
+    biasReason = "Price is inside or chopping around the CPR/pivot zone · no clean directional edge yet.";
   }
 
   const narrow = (tc - bc) / pivot < 0.0015; // narrow CPR → trend-day potential
@@ -176,7 +176,7 @@ function buildPlanNumbers(
         ? `${idx.derivative} futures (long) or ATM call option`
         : direction === "SHORT"
           ? `${idx.derivative} futures (short) or ATM put option`
-          : `${idx.derivative} futures / options — wait for breakout`,
+          : `${idx.derivative} futures / options · wait for breakout`,
     lotSize: idx.lotSize,
     entry,
     stop,

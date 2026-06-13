@@ -101,10 +101,10 @@ function ConstituentsTable({ index }: { index: string }) {
                 {fmtPct(q.changePercent)}
               </TableCell>
               <TableCell className="num py-1 text-right text-muted-foreground">
-                {fmt(q.low)} – {fmt(q.high)}
+                {fmt(q.low)} to {fmt(q.high)}
               </TableCell>
               <TableCell className="num py-1 text-right text-muted-foreground">
-                {fmt(q.yearLow)} – {fmt(q.yearHigh)}
+                {fmt(q.yearLow)} to {fmt(q.yearHigh)}
               </TableCell>
               <TableCell className="num py-1 text-right text-muted-foreground">
                 {fmtVolume(q.volume)}
@@ -114,7 +114,7 @@ function ConstituentsTable({ index }: { index: string }) {
         </TableBody>
       </Table>
       <div className="px-6 pb-2 text-[9px] text-muted-foreground">
-        Tracked constituents ({data.stocks.length}) — live index membership may differ.
+        Tracked constituents ({data.stocks.length}) · live index membership may differ.
       </div>
     </div>
   );
@@ -186,10 +186,10 @@ function AllIndicesTable() {
                     <TableCell className="num py-1 text-right text-muted-foreground">{fmt(idx.low)}</TableCell>
                     <TableCell className="num py-1 text-right text-muted-foreground">{fmt(idx.yearHigh)}</TableCell>
                     <TableCell className="num py-1 text-right text-muted-foreground">{fmt(idx.yearLow)}</TableCell>
-                    <TableCell className="num py-1 text-right">{idx.pe ? idx.pe.toFixed(1) : "—"}</TableCell>
-                    <TableCell className="num py-1 text-right">{idx.pb ? idx.pb.toFixed(1) : "—"}</TableCell>
+                    <TableCell className="num py-1 text-right">{idx.pe ? idx.pe.toFixed(1) : "n/a"}</TableCell>
+                    <TableCell className="num py-1 text-right">{idx.pb ? idx.pb.toFixed(1) : "n/a"}</TableCell>
                     <TableCell className="num py-1 text-right">
-                      {idx.divYield ? `${idx.divYield.toFixed(2)}%` : "—"}
+                      {idx.divYield ? `${idx.divYield.toFixed(2)}%` : "n/a"}
                     </TableCell>
                   </TableRow>
                   {isOpen && (
@@ -232,13 +232,13 @@ function MarketsStatBand() {
       />
       <StatTile
         label="Top Gainer"
-        value={top?.symbol ?? "—"}
+        value={top?.symbol ?? "n/a"}
         sub={top ? fmtPct(top.changePercent) : ""}
         tone="bull"
       />
       <StatTile
         label="Top Loser"
-        value={worst?.symbol ?? "—"}
+        value={worst?.symbol ?? "n/a"}
         sub={worst ? fmtPct(worst.changePercent) : ""}
         tone="bear"
       />

@@ -87,7 +87,7 @@ export function ReactionStrip({ symbol }: { symbol: string }) {
             </div>
             {data.surprises.slice(0, 4).map((s, i) => (
               <div key={`${s.quarter}-${i}`}>
-                {s.quarter.slice(0, 7)}: {s.epsActual ?? "—"} vs {s.epsEstimate ?? "—"}{" "}
+                {s.quarter.slice(0, 7)}: {s.epsActual ?? "n/a"} vs {s.epsEstimate ?? "n/a"}{" "}
                 {s.surprisePercent !== undefined && (
                   <span className={s.surprisePercent >= 0 ? "text-bull" : "text-bear"}>
                     ({s.surprisePercent >= 0 ? "beat +" : "miss "}

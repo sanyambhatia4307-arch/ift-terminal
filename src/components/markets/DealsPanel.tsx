@@ -40,7 +40,7 @@ export function DealsPanel() {
         <Skeleton className="m-2 h-48" />
       ) : !data || data.deals.length === 0 ? (
         <div className="p-3 text-xs text-muted-foreground">
-          No bulk/block deals reported yet today — NSE publishes them during and after market
+          No bulk/block deals reported yet today · NSE publishes them during and after market
           hours.
         </div>
       ) : (

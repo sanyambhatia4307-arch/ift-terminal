@@ -27,7 +27,7 @@ export interface ReactionsResult {
     positiveRate: number; // 0..1
     bestPct: number;
     worstPct: number;
-    avgAbsPct: number; // typical magnitude — sizing input
+    avgAbsPct: number; // typical magnitude · sizing input
   } | null;
   surprises: EpsSurprise[];
   generatedAt: number;

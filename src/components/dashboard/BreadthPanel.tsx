@@ -25,9 +25,9 @@ export function BreadthPanel() {
         </div>
         <div className="text-[11px] text-muted-foreground">
           {adv > dec
-            ? `Breadth is positive — ${((adv / total) * 100).toFixed(0)}% of constituents are advancing.`
+            ? `Breadth is positive · ${((adv / total) * 100).toFixed(0)}% of constituents are advancing.`
             : adv < dec
-              ? `Breadth is negative — ${((dec / total) * 100).toFixed(0)}% of constituents are declining.`
+              ? `Breadth is negative · ${((dec / total) * 100).toFixed(0)}% of constituents are declining.`
               : "Breadth is balanced between advancers and decliners."}
         </div>
       </div>

@@ -98,21 +98,21 @@ export default function ComparePage() {
   };
 
   const METRICS: Array<[string, (f: FundamentalsData) => string]> = [
-    ["Sector", (f) => f.sector ?? "—"],
+    ["Sector", (f) => f.sector ?? "n/a"],
     ["Market Cap", (f) => fmtInrCompact(f.marketCap)],
-    ["P/E (TTM)", (f) => (f.trailingPE != null ? fmt(f.trailingPE) : "—")],
-    ["P/B", (f) => (f.priceToBook != null ? fmt(f.priceToBook) : "—")],
-    ["ROE", (f) => (f.returnOnEquity != null ? fmtPct(f.returnOnEquity * 100, false) : "—")],
-    ["Net Margin", (f) => (f.profitMargin != null ? fmtPct(f.profitMargin * 100, false) : "—")],
-    ["Revenue Growth", (f) => (f.revenueGrowth != null ? fmtPct(f.revenueGrowth * 100) : "—")],
-    ["Debt/Equity", (f) => (f.debtToEquity != null ? fmt(f.debtToEquity / 100) : "—")],
-    ["Dividend Yield", (f) => (f.dividendYield != null ? fmtPct(f.dividendYield, false) : "—")],
-    ["Beta", (f) => (f.beta != null ? fmt(f.beta) : "—")],
+    ["P/E (TTM)", (f) => (f.trailingPE != null ? fmt(f.trailingPE) : "n/a")],
+    ["P/B", (f) => (f.priceToBook != null ? fmt(f.priceToBook) : "n/a")],
+    ["ROE", (f) => (f.returnOnEquity != null ? fmtPct(f.returnOnEquity * 100, false) : "n/a")],
+    ["Net Margin", (f) => (f.profitMargin != null ? fmtPct(f.profitMargin * 100, false) : "n/a")],
+    ["Revenue Growth", (f) => (f.revenueGrowth != null ? fmtPct(f.revenueGrowth * 100) : "n/a")],
+    ["Debt/Equity", (f) => (f.debtToEquity != null ? fmt(f.debtToEquity / 100) : "n/a")],
+    ["Dividend Yield", (f) => (f.dividendYield != null ? fmtPct(f.dividendYield, false) : "n/a")],
+    ["Beta", (f) => (f.beta != null ? fmt(f.beta) : "n/a")],
     [
       "Street Target",
-      (f) => (f.targetMeanPrice != null ? `₹${fmt(f.targetMeanPrice)}` : "—"),
+      (f) => (f.targetMeanPrice != null ? `₹${fmt(f.targetMeanPrice)}` : "n/a"),
     ],
-    ["Consensus", (f) => f.recommendationKey?.replace(/_/g, " ").toUpperCase() ?? "—"],
+    ["Consensus", (f) => f.recommendationKey?.replace(/_/g, " ").toUpperCase() ?? "n/a"],
   ];
 
   return (
@@ -198,7 +198,7 @@ export default function ComparePage() {
                   ))}
                 </div>
                 <p className="mt-1 px-1 text-[9px] leading-snug text-muted-foreground">
-                  Each axis 0–100; bigger is better (Safety = inverted risk). Hover a stock&apos;s
+                  Each axis 0 to 100; bigger is better (Safety = inverted risk). Hover a stock&apos;s
                   page for the exact pillar drivers.
                 </p>
               </>
@@ -238,7 +238,7 @@ export default function ComparePage() {
                       const fq = fundamentalsQueries[i];
                       return (
                         <td key={s} className="num px-2.5 py-1.5 text-right">
-                          {fq.isLoading ? "…" : fq.data ? getter(fq.data) : "—"}
+                          {fq.isLoading ? "…" : fq.data ? getter(fq.data) : "n/a"}
                         </td>
                       );
                     })}
@@ -250,7 +250,7 @@ export default function ComparePage() {
         </Panel>
       </div>
       <p className="px-1 text-[9px] text-muted-foreground">
-        Relative chart rebases each stock to 100 one year ago — the gap between lines is the
+        Relative chart rebases each stock to 100 one year ago · the gap between lines is the
         out/under-performance. Fundamentals from latest reported financials (≤15-min quotes).
       </p>
     </div>

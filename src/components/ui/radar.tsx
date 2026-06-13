@@ -6,7 +6,7 @@ export interface RadarSeries {
   values: number[]; // 0..100, aligned to axes
 }
 
-/** Multi-series radar (spider) chart on a 0–100 scale. */
+/** Multi-series radar (spider) chart on a 0 to 100 scale. */
 export function Radar({
   axes,
   series,

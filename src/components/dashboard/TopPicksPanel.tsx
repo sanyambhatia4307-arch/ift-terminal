@@ -94,7 +94,7 @@ export function TopPicksPanel() {
             ))}
           </div>
           <div className="px-2.5 py-1.5 text-[9px] leading-snug text-muted-foreground">
-            Ranked by trend, momentum and RSI from daily charts. Educational scan —
+            Ranked by trend, momentum and RSI from daily charts. Educational scan ·
             not investment advice. Open a stock for the full Signal Engine view.
           </div>
         </>

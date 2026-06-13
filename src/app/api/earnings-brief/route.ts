@@ -26,7 +26,7 @@ export function GET(req: Request) {
       try {
         company = (await getFundamentals(symbol)).name ?? symbol;
       } catch {
-        // index/ETF — keep symbol
+        // index/ETF · keep symbol
       }
       const [resultNews, commentaryNews] = await Promise.all([
         getNews(`${company} quarterly results revenue profit`)

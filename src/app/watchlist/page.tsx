@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Button } from "@/components/ui/button";
 import { FlashValue } from "@/components/ui/flash";
 import { Panel } from "@/components/ui/panel";
+import { RangeBar } from "@/components/ui/range-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkline } from "@/components/ui/sparkline";
 import { StatBand, StatTile } from "@/components/ui/stat-tile";
@@ -142,8 +143,12 @@ export default function WatchlistPage() {
                     <TableCell className={`num py-1.5 text-right ${changeClass(q?.changePercent)}`}>
                       {q ? fmtPct(q.changePercent) : ""}
                     </TableCell>
-                    <TableCell className="num py-1.5 text-right text-muted-foreground">
-                      {q ? `${fmt(q.yearLow)} – ${fmt(q.yearHigh)}` : ""}
+                    <TableCell className="py-1.5">
+                      {q ? (
+                        <div className="ml-auto w-32">
+                          <RangeBar low={q.yearLow} high={q.yearHigh} last={q.last} compact />
+                        </div>
+                      ) : null}
                     </TableCell>
                     <TableCell className="num py-1.5 text-right text-muted-foreground">
                       {q ? fmtVolume(q.volume) : ""}

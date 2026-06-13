@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 /**
  * Re-mounts on every navigation (unlike layout.tsx), so this animates each
- * view in as it opens — a soft fade + lift + de-blur. Disabled under
+ * view in as it opens · a soft fade + lift + de-blur. Disabled under
  * prefers-reduced-motion.
  */
 export default function Template({ children }: { children: React.ReactNode }) {

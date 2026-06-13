@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Semicircular advancers/decliners gauge — a fear/greed-style needle.
+ * Semicircular advancers/decliners gauge · a fear/greed-style needle.
  * t = advancers / total, mapped across a 180° arc (red → amber → green).
  */
 export function BreadthGauge({

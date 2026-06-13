@@ -48,7 +48,7 @@ function NewsLinks({ items }: { items: NewsItem[] }) {
   );
 }
 
-/** Full three-section brief — used in the earnings-row expansion. */
+/** Full three-section brief · used in the earnings-row expansion. */
 export function EarningsBriefBody({ symbol }: { symbol: string }) {
   const { data, isLoading } = useEarningsBrief(symbol);
 
@@ -84,7 +84,7 @@ export function EarningsBriefBody({ symbol }: { symbol: string }) {
               <p className="mb-1.5 text-[11px] leading-relaxed text-foreground/90">{summary}</p>
             ) : (
               <p className="mb-1.5 text-[10px] text-muted-foreground">
-                AI synthesis off (no API key) — read the source coverage:
+                AI synthesis off (no API key) · read the source coverage:
               </p>
             )}
             <NewsLinks items={news} />
@@ -93,7 +93,7 @@ export function EarningsBriefBody({ symbol }: { symbol: string }) {
       </div>
       <p className="px-3 pb-2 text-[9px] text-muted-foreground">
         Synthesised from live news coverage of the most recent reported quarter
-        {data.summary ? " by Claude" : ""} — verify against the company's filings before acting.
+        {data.summary ? " by Claude" : ""} · verify against the company's filings before acting.
       </p>
     </div>
   );

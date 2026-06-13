@@ -46,7 +46,7 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "panel-rise hover-glow relative overflow-hidden rounded-sm border border-border bg-card px-2.5 py-2",
+        "panel-rise hover-glow relative flex flex-col justify-center overflow-hidden rounded-sm border border-border bg-card px-2.5 py-2",
         className
       )}
       style={{ background: `linear-gradient(180deg, ${TONE_GLOW[tone]}, transparent)` }}

@@ -39,7 +39,7 @@ export function WatchlistStrip() {
         })}
         {symbols.length === 0 && (
           <div className="p-3 text-xs text-muted-foreground">
-            Watchlist empty — add stocks from any research page.
+            Watchlist empty · add stocks from any research page.
           </div>
         )}
       </div>

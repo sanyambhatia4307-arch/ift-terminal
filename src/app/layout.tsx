@@ -14,7 +14,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IFT — Indian Financial Intelligence Terminal",
+  title: "IFT · Indian Financial Intelligence Terminal",
   description:
     "Institutional-grade market intelligence terminal for Indian equities: live indices, movers, research, news and watchlists.",
 };

@@ -9,7 +9,7 @@ import { getChart, getFundamentals, getNews } from "@/lib/market";
  * Patterns are detected from price/volume structure; the projection drifts
  * the last price forward using a transparent blend of momentum, news
  * sentiment and analyst-target pull, with a ±1σ volatility cone. It is a
- * statistical extrapolation for orientation — not a price prediction.
+ * statistical extrapolation for orientation · not a price prediction.
  */
 
 export interface DetectedPattern {
@@ -62,7 +62,7 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
     name = f.name;
     if (f.targetMeanPrice) analystUpsidePct = ((f.targetMeanPrice - t.last) / t.last) * 100;
   } catch {
-    // indices/ETFs — no fundamentals
+    // indices/ETFs · no fundamentals
   }
   try {
     const news = (await getNews(`${name ?? symbol} stock`)).slice(0, 25);
@@ -75,7 +75,7 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
     ).catch(() => null);
     sentimentScore = llm?.score ?? scoreNewsSentiment(news).score;
   } catch {
-    // news down — purely technical projection
+    // news down · purely technical projection
   }
 
   /* ---- Pattern detection ---- */
@@ -89,7 +89,7 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
     patterns.push({
       name: golden ? "Golden-cross regime" : "Death-cross regime",
       signal: golden ? "bullish" : "bearish",
-      detail: `50-DMA ${golden ? "above" : "below"} 200-DMA — ${golden ? "structural uptrend" : "structural downtrend"}.`,
+      detail: `50-DMA ${golden ? "above" : "below"} 200-DMA · ${golden ? "structural uptrend" : "structural downtrend"}.`,
     });
     const above200 = t.last > t.sma200;
     patterns.push({
@@ -122,16 +122,16 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
       patterns.push({
         name: "Symmetrical squeeze",
         signal: "neutral",
-        detail: "Range is compressing — breakouts from squeezes tend to travel.",
+        detail: "Range is compressing · breakouts from squeezes tend to travel.",
       });
     }
   }
 
   if (t.rsi14 !== undefined) {
     if (t.rsi14 > 70)
-      patterns.push({ name: "Overbought (RSI)", signal: "bearish", detail: `RSI ${t.rsi14.toFixed(0)} — stretched; pullback risk elevated.` });
+      patterns.push({ name: "Overbought (RSI)", signal: "bearish", detail: `RSI ${t.rsi14.toFixed(0)} · stretched; pullback risk elevated.` });
     else if (t.rsi14 < 30)
-      patterns.push({ name: "Oversold (RSI)", signal: "bullish", detail: `RSI ${t.rsi14.toFixed(0)} — washed out; bounce-prone zone.` });
+      patterns.push({ name: "Oversold (RSI)", signal: "bullish", detail: `RSI ${t.rsi14.toFixed(0)} · washed out; bounce-prone zone.` });
   }
   if (t.macdHistogram !== undefined) {
     patterns.push({
@@ -144,28 +144,28 @@ export async function buildForecast(symbol: string, horizonDays: number): Promis
     patterns.push({
       name: "52-week breakout watch",
       signal: "bullish",
-      detail: "Within 3% of the 52-week high — fresh highs attract momentum flows.",
+      detail: "Within 3% of the 52-week high · fresh highs attract momentum flows.",
     });
   }
   if (t.support && Math.abs(t.last - t.support) / t.last < 0.02) {
     patterns.push({
       name: "Testing support",
       signal: "neutral",
-      detail: `Sitting on the ₹${t.support.toFixed(0)} support shelf — hold or break decides the next leg.`,
+      detail: `Sitting on the ₹${t.support.toFixed(0)} support shelf · hold or break decides the next leg.`,
     });
   }
   if (t.resistance && Math.abs(t.last - t.resistance) / t.last < 0.02) {
     patterns.push({
       name: "Testing resistance",
       signal: "neutral",
-      detail: `Pressing the ₹${t.resistance.toFixed(0)} ceiling — a close above opens room higher.`,
+      detail: `Pressing the ₹${t.resistance.toFixed(0)} ceiling · a close above opens room higher.`,
     });
   }
   if (t.volumeRatio !== undefined && t.volumeRatio > 1.4) {
     patterns.push({
       name: "Volume surge",
       signal: "neutral",
-      detail: `5-day volume running ${((t.volumeRatio - 1) * 100).toFixed(0)}% above the 20-day norm — conviction behind the current move.`,
+      detail: `5-day volume running ${((t.volumeRatio - 1) * 100).toFixed(0)}% above the 20-day norm · conviction behind the current move.`,
     });
   }
   if (Math.abs(sentimentScore) > 0.25) {

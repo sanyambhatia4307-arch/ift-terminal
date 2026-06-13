@@ -10,7 +10,7 @@ export function Sparkline({
   height = 26,
 }: {
   candles: Candle[];
-  baseline?: number; // previous close — colors relative to it
+  baseline?: number; // previous close · colors relative to it
   width?: number;
   height?: number;
 }) {

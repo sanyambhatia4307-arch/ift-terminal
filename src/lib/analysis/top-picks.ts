@@ -19,7 +19,7 @@ const clamp = (n: number) => Math.max(-1, Math.min(1, n));
 
 /**
  * Technical-only ranking across the NIFTY 50 universe. Uses cached daily
- * charts (one Yahoo call per symbol, 30-min cache) — fundamentals and news
+ * charts (one Yahoo call per symbol, 30-min cache) · fundamentals and news
  * are deliberately excluded here to keep the scan cheap; the full Signal
  * Engine runs on the stock page.
  */

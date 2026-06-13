@@ -11,7 +11,7 @@ import type { FundamentalsData, NewsItem } from "@/types/market";
 /**
  * Investment Intelligence Framework.
  *
- * No black-box Buy/Sell labels: each security is scored 0–100 across seven
+ * No black-box Buy/Sell labels: each security is scored 0 to 100 across seven
  * explainable pillars, every pillar lists the exact data points that drove
  * it, and the overall score plus a derived stance roll up transparently.
  */
@@ -28,7 +28,7 @@ export type PillarKey =
 export interface PillarScore {
   key: PillarKey;
   name: string;
-  /** 0–100. For `risk`, higher = MORE risk (UI inverts its color). */
+  /** 0 to 100. For `risk`, higher = MORE risk (UI inverts its color). */
   score: number;
   weight: number;
   drivers: string[];
@@ -83,7 +83,7 @@ function valuationPillar(f: FundamentalsData | null, last: number): PillarScore 
     const s = pe < 15 ? 82 : pe < 22 ? 68 : pe < 32 ? 52 : pe < 45 ? 38 : 24;
     b.scores.push(s);
     (s >= 60 ? b.drivers : b.cautions).push(
-      `P/E ${pe.toFixed(1)}x — ${s >= 60 ? "reasonable vs broad-market norms" : "rich; growth must deliver"}`
+      `P/E ${pe.toFixed(1)}x · ${s >= 60 ? "reasonable vs broad-market norms" : "rich; growth must deliver"}`
     );
   }
   if (f?.priceToBook != null && f.priceToBook > 0) {
@@ -166,9 +166,9 @@ function momentumPillar(t: TechnicalIndicators): PillarScore {
     const r = t.rsi14;
     const s = r >= 45 && r <= 65 ? 75 : r > 65 && r <= 72 ? 60 : r > 72 ? 40 : r >= 35 ? 55 : 35;
     b.scores.push(s);
-    if (r > 72) b.cautions.push(`RSI ${r.toFixed(0)} — overbought, pullback risk`);
-    else if (r < 32) b.cautions.push(`RSI ${r.toFixed(0)} — heavily oversold (weak tape, possible bounce)`);
-    else b.drivers.push(`RSI ${r.toFixed(0)} — healthy zone`);
+    if (r > 72) b.cautions.push(`RSI ${r.toFixed(0)} · overbought, pullback risk`);
+    else if (r < 32) b.cautions.push(`RSI ${r.toFixed(0)} · heavily oversold (weak tape, possible bounce)`);
+    else b.drivers.push(`RSI ${r.toFixed(0)} · healthy zone`);
   }
   if (t.pctFrom52wHigh !== undefined && t.pctFrom52wHigh > -6) {
     b.drivers.push("Trading within 6% of its 52-week high");
@@ -203,7 +203,7 @@ function sentimentPillar(
 ): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
   if (llm) {
-    // NLP read of the headlines — materiality-weighted, preferred over lexicon.
+    // NLP read of the headlines · materiality-weighted, preferred over lexicon.
     const sc = clamp100(50 + llm.score * 38);
     b.scores.push(sc);
     (llm.score >= 0 ? b.drivers : b.cautions).push(`AI news read: ${llm.rationale}`);
@@ -235,7 +235,7 @@ function riskPillar(t: TechnicalIndicators, f: FundamentalsData | null): PillarS
     const s = v < 18 ? 25 : v < 28 ? 42 : v < 42 ? 62 : 82;
     b.scores.push(s);
     (s >= 50 ? b.drivers : b.cautions).push(
-      `Annualised volatility ${v.toFixed(0)}% — ${s >= 50 ? "elevated swings" : "relatively contained"}`
+      `Annualised volatility ${v.toFixed(0)}% · ${s >= 50 ? "elevated swings" : "relatively contained"}`
     );
   }
   if (t.pctFrom52wHigh !== undefined && t.pctFrom52wHigh < -25) {
@@ -253,7 +253,7 @@ function riskPillar(t: TechnicalIndicators, f: FundamentalsData | null): PillarS
   }
   if (f?.heldByInstitutions != null && f.heldByInstitutions > 0.45) {
     b.drivers.push(
-      `High institutional concentration (${pct(f.heldByInstitutions)}) — crowded-exit risk`
+      `High institutional concentration (${pct(f.heldByInstitutions)}) · crowded-exit risk`
     );
   }
   return { key: "risk", name: "Risk", weight: 0.15, ...pillar(b), drivers: b.drivers, cautions: b.cautions };
@@ -268,14 +268,14 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
   try {
     fundamentals = await getFundamentals(symbol);
   } catch {
-    // Indices/ETFs may have no fundamentals — pillars degrade gracefully.
+    // Indices/ETFs may have no fundamentals · pillars degrade gracefully.
   }
 
   let news: NewsItem[] = [];
   try {
     news = (await getNews(`${fundamentals?.name ?? symbol} stock`)).slice(0, 25);
   } catch {
-    // News source down — sentiment pillar marks itself unavailable.
+    // News source down · sentiment pillar marks itself unavailable.
   }
   const sentiment = scoreNewsSentiment(news);
   const llmSent = await cachedLlmSentiment(

@@ -129,7 +129,7 @@ export async function yahooChart(
   };
 }
 
-/** Quote built from the chart meta — works without crumb auth. */
+/** Quote built from the chart meta · works without crumb auth. */
 export async function yahooQuoteLite(symbol: string): Promise<StockQuote> {
   const ySym = toYahooSymbol(symbol);
   const result = await fetchChart(ySym, "1d", "5m");
@@ -184,7 +184,7 @@ export async function yahooSearch(q: string): Promise<SearchResult[]> {
       exchange: r.exchDisp ?? r.exchange,
       type: r.quoteType,
     }));
-  // Indian listings first — this is an Indian markets terminal.
+  // Indian listings first · this is an Indian markets terminal.
   return results.sort((a, b) => {
     const ai = a.symbol.endsWith(".NS") || a.symbol.endsWith(".BO") ? 0 : 1;
     const bi = b.symbol.endsWith(".NS") || b.symbol.endsWith(".BO") ? 0 : 1;
@@ -204,7 +204,7 @@ export async function yahooEarningsHistory(symbol: string): Promise<EpsSurprise[
   const ySym = toYahooSymbol(symbol);
   const r = await yf.quoteSummary(ySym, { modules: ["earningsHistory"] });
   return (r.earningsHistory?.history ?? []).map((h) => ({
-    quarter: h.quarter ? new Date(h.quarter).toISOString().slice(0, 10) : "—",
+    quarter: h.quarter ? new Date(h.quarter).toISOString().slice(0, 10) : "n/a",
     epsActual: h.epsActual ?? undefined,
     epsEstimate: h.epsEstimate ?? undefined,
     surprisePercent: h.surprisePercent != null ? h.surprisePercent * 100 : undefined,

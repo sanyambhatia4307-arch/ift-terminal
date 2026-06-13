@@ -122,13 +122,13 @@ export function MarketMoodBand() {
         {/* macro chips + brief */}
         <div className="flex min-w-0 flex-col justify-center gap-1.5">
           <div className="grid grid-cols-3 gap-1.5">
-            <Chip label="India VIX" value={vix ? fmt(vix.last) : "—"} sub={vix ? fmtPct(vix.changePercent) : ""} tone={vix && vix.changePercent > 0 ? "bear" : "bull"} />
-            <Chip label="FII (₹Cr)" value={fii ? Math.round(fii.netValue).toLocaleString("en-IN") : "—"} sub={fii && fii.netValue >= 0 ? "net buy" : "net sell"} tone={fii && fii.netValue >= 0 ? "bull" : "bear"} />
-            <Chip label="DII (₹Cr)" value={dii ? Math.round(dii.netValue).toLocaleString("en-IN") : "—"} sub={dii && dii.netValue >= 0 ? "net buy" : "net sell"} tone={dii && dii.netValue >= 0 ? "bull" : "bear"} />
+            <Chip label="India VIX" value={vix ? fmt(vix.last) : "n/a"} sub={vix ? fmtPct(vix.changePercent) : ""} tone={vix && vix.changePercent > 0 ? "bear" : "bull"} />
+            <Chip label="FII (₹Cr)" value={fii ? Math.round(fii.netValue).toLocaleString("en-IN") : "n/a"} sub={fii && fii.netValue >= 0 ? "net buy" : "net sell"} tone={fii && fii.netValue >= 0 ? "bull" : "bear"} />
+            <Chip label="DII (₹Cr)" value={dii ? Math.round(dii.netValue).toLocaleString("en-IN") : "n/a"} sub={dii && dii.netValue >= 0 ? "net buy" : "net sell"} tone={dii && dii.netValue >= 0 ? "bull" : "bear"} />
           </div>
           {pulse?.summary && (
             <p className="line-clamp-3 text-[11px] leading-relaxed text-muted-foreground">
-              <span className="font-semibold text-foreground">Brief — </span>
+              <span className="font-semibold text-foreground">Brief · </span>
               {pulse.summary}
             </p>
           )}

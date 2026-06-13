@@ -74,7 +74,7 @@ export default function EarningsPage() {
           <StatTile label="Upcoming" numeric={data.length} format={(n) => String(Math.round(n))} sub="NIFTY 50 results" tone="primary" />
           <StatTile label="This Week" numeric={weekCount} format={(n) => String(Math.round(n))} sub="reporting ≤7 days" tone={weekCount > 0 ? "bull" : "neutral"} />
           <StatTile label="Confirmed Dates" numeric={confirmedCount} format={(n) => String(Math.round(n))} sub={`${data.length - confirmedCount} tentative`} tone="neutral" />
-          <StatTile label="Next Up" value={nextUp?.symbol ?? "—"} sub={nextUp ? fmtDate(nextUp.start).replace(/,.*/, "") : ""} tone="primary" />
+          <StatTile label="Next Up" value={nextUp?.symbol ?? "n/a"} sub={nextUp ? fmtDate(nextUp.start).replace(/,.*/, "") : ""} tone="primary" />
         </StatBand>
       )}
 
@@ -87,7 +87,7 @@ export default function EarningsPage() {
       ) : !data || data.length === 0 ? (
         <Panel code="EARN" title="No upcoming earnings windows">
           <div className="p-4 text-xs text-muted-foreground">
-            No forward earnings dates are published right now — between result seasons this list
+            No forward earnings dates are published right now · between result seasons this list
             can be empty. It refreshes every 12 hours.
           </div>
         </Panel>
@@ -127,7 +127,7 @@ export default function EarningsPage() {
                         </span>
                         <span className="num w-56 text-right">
                           {fmtDate(e.start)}
-                          {e.end && e.end !== e.start && ` – ${fmtDate(e.end)}`}
+                          {e.end && e.end !== e.start && ` to ${fmtDate(e.end)}`}
                         </span>
                         <span
                           className={cn(
@@ -155,7 +155,7 @@ export default function EarningsPage() {
             </Panel>
           ))}
           <p className="px-1 text-[9px] text-muted-foreground">
-            Results days bring outsized moves and rich option premiums — check the stock's
+            Results days bring outsized moves and rich option premiums · check the stock's
             Intelligence Score and volatility before holding through a print. Dates from company
             filings via Yahoo; tentative windows can shift.
           </p>

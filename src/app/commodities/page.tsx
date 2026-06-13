@@ -76,7 +76,7 @@ function GroupPanel({
           const rsym = researchSymbolFor(row);
           const active = selectedSymbol === rsym;
           const inrText =
-            row.inrValue !== undefined ? inrCompact(row.inrValue, row.inrUnit) : "—";
+            row.inrValue !== undefined ? inrCompact(row.inrValue, row.inrUnit) : "n/a";
           return (
             <button
               key={row.symbol}
@@ -187,8 +187,8 @@ export default function CommoditiesPage() {
       )}
       <p className="px-1 text-[9px] leading-snug text-muted-foreground">
         ₹ values convert live global futures (USD) at the current USD/INR rate into Indian market
-        units — gold &amp; platinum per 10g, silver &amp; copper per kg, crude per barrel. Click any
-        row to open its chart, intelligence score (technical + AI sentiment) and news — global
+        units · gold &amp; platinum per 10g, silver &amp; copper per kg, crude per barrel. Click any
+        row to open its chart, intelligence score (technical + AI sentiment) and news · global
         commodities have no company fundamentals, so those pillars show as unavailable. India ETFs
         track these metals and trade like stocks; commodity mutual funds (fund-of-funds) follow the
         same ETFs with a 1-day NAV lag.

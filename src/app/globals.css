@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Institutional bright terminal palette — cool paper white */
+  /* Institutional bright terminal palette · cool paper white */
   --background: oklch(0.965 0.005 250);
   --foreground: oklch(0.26 0.02 255);
   --card: oklch(0.995 0.002 250);
@@ -26,7 +26,7 @@
   --ring: oklch(0.6 0.13 70);
   --radius: 0.25rem;
 
-  /* Market semantics — darkened for contrast on white */
+  /* Market semantics · darkened for contrast on white */
   --bull: oklch(0.54 0.14 158);
   --bear: oklch(0.55 0.19 25);
   --flat: oklch(0.52 0.02 250);
@@ -68,7 +68,7 @@ html {
 }
 
 body {
-  /* Soft ivory→blue-gray gradient — bright but never flat white */
+  /* Soft ivory→blue-gray gradient · bright but never flat white */
   background:
     linear-gradient(168deg,
       oklch(0.978 0.008 230) 0%,
@@ -79,7 +79,7 @@ body {
   font-feature-settings: "tnum" 1, "cv05" 1;
 }
 
-/* Aurora depth — two slow-drifting tinted glows behind everything */
+/* Aurora depth · two slow-drifting tinted glows behind everything */
 body::before {
   content: "";
   position: fixed;

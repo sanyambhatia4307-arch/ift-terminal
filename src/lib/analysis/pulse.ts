@@ -5,9 +5,9 @@ import { yahooQuotes } from "@/lib/sources/yahoo";
 import type { StockQuote } from "@/types/market";
 
 /**
- * "Today in the financial world" — the pre-open sheet an institutional desk
+ * "Today in the financial world" · the pre-open sheet an institutional desk
  * scans: global equities, US futures, FX, commodities, rates, crypto,
- * institutional flows, volatility — plus rule-based anomaly detection.
+ * institutional flows, volatility · plus rule-based anomaly detection.
  */
 
 interface GlobalSymbol {
@@ -67,7 +67,7 @@ function detectAnomalies(
       const dir = q.changePercent > 0 ? "up" : "down";
       anomalies.push({
         severity: Math.abs(q.changePercent) >= cfg.anomalyPct * 1.8 ? "high" : "medium",
-        text: `${cfg.label} ${dir} ${Math.abs(q.changePercent).toFixed(1)}% — ${
+        text: `${cfg.label} ${dir} ${Math.abs(q.changePercent).toFixed(1)}% · ${
           cfg.group === "Commodities" || cfg.group === "FX & Rates"
             ? "watch input-cost / flow sensitive sectors"
             : "global risk sentiment shifting"
@@ -80,12 +80,12 @@ function detectAnomalies(
     if (vix.last >= 20) {
       anomalies.push({
         severity: "high",
-        text: `India VIX at ${vix.last.toFixed(1)} — elevated fear; option premiums rich, expect wide intraday swings.`,
+        text: `India VIX at ${vix.last.toFixed(1)} · elevated fear; option premiums rich, expect wide intraday swings.`,
       });
     } else if (Math.abs(vix.changePercent) >= 8) {
       anomalies.push({
         severity: "medium",
-        text: `India VIX moved ${vix.changePercent > 0 ? "+" : ""}${vix.changePercent.toFixed(1)}% — volatility regime shifting.`,
+        text: `India VIX moved ${vix.changePercent > 0 ? "+" : ""}${vix.changePercent.toFixed(1)}% · volatility regime shifting.`,
       });
     }
   }
@@ -102,7 +102,7 @@ function detectAnomalies(
     if (fii && dii && fii.netValue < -1000 && dii.netValue > 1000) {
       anomalies.push({
         severity: "medium",
-        text: `Classic tug-of-war: FII selling ₹${Math.abs(fii.netValue).toFixed(0)} Cr vs DII absorbing ₹${dii.netValue.toFixed(0)} Cr — domestic flows holding the market up.`,
+        text: `Classic tug-of-war: FII selling ₹${Math.abs(fii.netValue).toFixed(0)} Cr vs DII absorbing ₹${dii.netValue.toFixed(0)} Cr · domestic flows holding the market up.`,
       });
     }
   }

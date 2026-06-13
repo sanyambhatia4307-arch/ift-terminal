@@ -36,7 +36,7 @@ async function getCookie(force = false): Promise<string> {
 }
 
 async function nseJson<T>(path: string): Promise<T> {
-  // First try bare — several endpoints (allIndices, marketStatus) allow it.
+  // First try bare · several endpoints (allIndices, marketStatus) allow it.
   const attempt = async (cookie?: string) => {
     const res = await fetch(`${BASE}${path}`, {
       headers: {
@@ -238,7 +238,7 @@ export interface NseConstituents {
   unchanged?: number;
 }
 
-/** Constituent-level data for an index — needs the cookie session. */
+/** Constituent-level data for an index · needs the cookie session. */
 export async function nseIndexConstituents(index: string): Promise<NseConstituents> {
   const data = await nseJson<{
     data: NseStockRow[];

@@ -9,17 +9,17 @@ import type { FundamentalsData } from "@/types/market";
 type Row = { label: string; value: string };
 
 function rows(f: FundamentalsData): { valuation: Row[]; profitability: Row[]; balance: Row[]; ownership: Row[] } {
-  const pct = (v?: number) => (v != null ? fmtPct(v * 100, false) : "—");
+  const pct = (v?: number) => (v != null ? fmtPct(v * 100, false) : "n/a");
   return {
     valuation: [
       { label: "Market Cap", value: fmtInrCompact(f.marketCap) },
-      { label: "P/E (TTM)", value: f.trailingPE != null ? fmt(f.trailingPE) : "—" },
-      { label: "Forward P/E", value: f.forwardPE != null ? fmt(f.forwardPE) : "—" },
-      { label: "P/B", value: f.priceToBook != null ? fmt(f.priceToBook) : "—" },
-      { label: "EPS (TTM)", value: f.eps != null ? `₹${fmt(f.eps)}` : "—" },
-      { label: "Book Value", value: f.bookValue != null ? `₹${fmt(f.bookValue)}` : "—" },
-      { label: "Dividend Yield", value: f.dividendYield != null ? fmtPct(f.dividendYield, false) : "—" },
-      { label: "Beta", value: f.beta != null ? fmt(f.beta) : "—" },
+      { label: "P/E (TTM)", value: f.trailingPE != null ? fmt(f.trailingPE) : "n/a" },
+      { label: "Forward P/E", value: f.forwardPE != null ? fmt(f.forwardPE) : "n/a" },
+      { label: "P/B", value: f.priceToBook != null ? fmt(f.priceToBook) : "n/a" },
+      { label: "EPS (TTM)", value: f.eps != null ? `₹${fmt(f.eps)}` : "n/a" },
+      { label: "Book Value", value: f.bookValue != null ? `₹${fmt(f.bookValue)}` : "n/a" },
+      { label: "Dividend Yield", value: f.dividendYield != null ? fmtPct(f.dividendYield, false) : "n/a" },
+      { label: "Beta", value: f.beta != null ? fmt(f.beta) : "n/a" },
     ],
     profitability: [
       { label: "Revenue (TTM)", value: fmtInrCompact(f.totalRevenue) },
@@ -33,12 +33,12 @@ function rows(f: FundamentalsData): { valuation: Row[]; profitability: Row[]; ba
     balance: [
       { label: "Total Cash", value: fmtInrCompact(f.totalCash) },
       { label: "Total Debt", value: fmtInrCompact(f.totalDebt) },
-      { label: "Debt / Equity", value: f.debtToEquity != null ? fmt(f.debtToEquity / 100) : "—" },
-      { label: "50D Average", value: f.fiftyDayAverage != null ? `₹${fmt(f.fiftyDayAverage)}` : "—" },
-      { label: "200D Average", value: f.twoHundredDayAverage != null ? `₹${fmt(f.twoHundredDayAverage)}` : "—" },
+      { label: "Debt / Equity", value: f.debtToEquity != null ? fmt(f.debtToEquity / 100) : "n/a" },
+      { label: "50D Average", value: f.fiftyDayAverage != null ? `₹${fmt(f.fiftyDayAverage)}` : "n/a" },
+      { label: "200D Average", value: f.twoHundredDayAverage != null ? `₹${fmt(f.twoHundredDayAverage)}` : "n/a" },
     ],
     ownership: [
-      { label: "Shares Outstanding", value: f.sharesOutstanding != null ? fmtInrCompact(f.sharesOutstanding).replace("₹", "") : "—" },
+      { label: "Shares Outstanding", value: f.sharesOutstanding != null ? fmtInrCompact(f.sharesOutstanding).replace("₹", "") : "n/a" },
       { label: "Promoter/Insider", value: pct(f.heldByInsiders) },
       { label: "Institutions", value: pct(f.heldByInstitutions) },
       {
@@ -46,9 +46,9 @@ function rows(f: FundamentalsData): { valuation: Row[]; profitability: Row[]; ba
         value:
           f.targetMeanPrice != null
             ? `₹${fmt(f.targetMeanPrice)}${f.numberOfAnalysts ? ` (${f.numberOfAnalysts})` : ""}`
-            : "—",
+            : "n/a",
       },
-      { label: "Consensus", value: f.recommendationKey?.replace(/_/g, " ").toUpperCase() ?? "—" },
+      { label: "Consensus", value: f.recommendationKey?.replace(/_/g, " ").toUpperCase() ?? "n/a" },
     ],
   };
 }
@@ -129,7 +129,7 @@ export function KeyStats({ symbol, className }: { symbol: string; className?: st
                             qoq === undefined ? "text-muted-foreground" : qoq >= 0 ? "text-bull" : "text-bear"
                           }`}
                         >
-                          {qoq !== undefined ? fmtPct(qoq) : "—"}
+                          {qoq !== undefined ? fmtPct(qoq) : "n/a"}
                         </td>
                       </tr>
                     );

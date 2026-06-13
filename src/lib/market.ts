@@ -119,7 +119,7 @@ export function getMarketStatus(): Promise<MarketStatusInfo> {
     firstOf([
       nseMarketStatus,
       async () => {
-        // Fallback: infer from NSE trading hours (Mon–Fri 09:15–15:30 IST).
+        // Fallback: infer from NSE trading hours (Mon to Fri 09:15 to 15:30 IST).
         const ist = new Date(
           new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
         );

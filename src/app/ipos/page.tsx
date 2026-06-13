@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { Donut, type DonutSegment } from "@/components/ui/donut";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatBand, StatTile } from "@/components/ui/stat-tile";
+import { StatTile } from "@/components/ui/stat-tile";
 import { TONE } from "@/lib/tones";
 import { cn } from "@/lib/utils";
 import type { IpoDossier } from "@/lib/data/ipos";
@@ -150,15 +150,15 @@ function IpoStatHero({ ipos }: { ipos: IpoWithNews[] }) {
     { label: "Caution", value: caution, color: TONE.red },
   ];
   return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1.6fr_1fr]">
-      <StatBand cols={4}>
+    <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[1.6fr_1fr]">
+      <div className="stagger grid auto-rows-fr grid-cols-2 gap-2">
         <StatTile label="In Pipeline" numeric={ipos.length} format={(n) => String(Math.round(n))} sub="tracked names" tone="primary" />
         <StatTile label="Favourable Setup" numeric={positive} format={(n) => String(Math.round(n))} sub="listing-gain lean" tone="bull" />
         <StatTile label="Caution Flagged" numeric={caution} format={(n) => String(Math.round(n))} sub="aggressive pricing/risk" tone="bear" />
         <StatTile label="Live Stories" numeric={totalNews} format={(n) => String(Math.round(n))} sub="across the pipeline" tone="neutral" />
-      </StatBand>
+      </div>
       <Panel code="MOOD" title="Listing-gain sentiment">
-        <div className="p-3">
+        <div className="flex h-full items-center p-3">
           <Donut segments={segments} centerTop={String(ipos.length)} centerSub="IPOS" />
         </div>
       </Panel>
@@ -198,7 +198,7 @@ export default function IposPage() {
           <p className="px-1 text-[9px] leading-snug text-muted-foreground">
             Dossier fields (valuation, structure, risk flags) are editorial research summaries of
             public filings and reporting as of the review date; news links are live. Grey-market
-            premium (GMP) is unofficial, illiquid and volatile — listing-gain setups are
+            premium (GMP) is unofficial, illiquid and volatile · listing-gain setups are
             qualitative reads, not forecasts. Not investment advice.
           </p>
         </>

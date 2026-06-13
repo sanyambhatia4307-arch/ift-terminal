@@ -79,8 +79,8 @@ export function IndicesGrid() {
                   </div>
                 ) : idx.pe ? (
                   <div className="num mt-1 text-[10px] text-muted-foreground">
-                    P/E {idx.pe.toFixed(1)} · P/B {idx.pb?.toFixed(1) ?? "—"} · Yld{" "}
-                    {idx.divYield?.toFixed(2) ?? "—"}%
+                    P/E {idx.pe.toFixed(1)} · P/B {idx.pb?.toFixed(1) ?? "n/a"} · Yld{" "}
+                    {idx.divYield?.toFixed(2) ?? "n/a"}%
                   </div>
                 ) : null}
               </Link>

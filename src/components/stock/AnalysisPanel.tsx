@@ -44,7 +44,7 @@ function ScoreRing({ score }: { score: number }) {
 }
 
 function PillarRow({ p }: { p: PillarScore }) {
-  // For Risk, a high score is bad — invert the color read.
+  // For Risk, a high score is bad · invert the color read.
   const display = p.key === "risk" ? 100 - p.score : p.score;
   const detail = [...p.drivers, ...p.cautions][0] ?? "Insufficient data";
   return (
@@ -52,7 +52,7 @@ function PillarRow({ p }: { p: PillarScore }) {
       <div className="flex items-baseline justify-between text-[11px]">
         <span className={cn(!p.available && "text-muted-foreground/50")}>{p.name}</span>
         <span className="num" style={{ color: p.available ? scoreColor(display) : undefined }}>
-          {p.available ? p.score : "—"}
+          {p.available ? p.score : "n/a"}
           {p.available && p.key === "risk" && (
             <span className="ml-1 text-[9px] text-muted-foreground">
               ({p.score >= 55 ? "high" : p.score >= 40 ? "moderate" : "low"})
@@ -176,7 +176,7 @@ export function AnalysisPanel({ symbol }: { symbol: string }) {
           </p>
 
           <p className="text-[9px] leading-snug text-muted-foreground">
-            Transparent multi-pillar scoring from free public data — every number above is
+            Transparent multi-pillar scoring from free public data · every number above is
             explainable (hover a pillar).{" "}
             <Link href="/guide" className="text-primary hover:underline">
               Methodology →

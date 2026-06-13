@@ -1,5 +1,5 @@
 /**
- * Indian IPO pipeline dossiers — editorially researched (last review below),
+ * Indian IPO pipeline dossiers · editorially researched (last review below),
  * enriched at runtime with live news per company. Valuations and structures
  * change with each filing; the linked live news is the real-time layer.
  */
@@ -29,23 +29,23 @@ export const IPO_PIPELINE: IpoDossier[] = [
     sector: "Telecom / Digital Services",
     status: "DRHP imminent (filing expected H2 2026)",
     expectedTimeline: "Listing seen slipping to H2 FY27",
-    valuation: "₹10.8–14.1 lakh Cr ($130–170B) banker range",
+    valuation: "₹10.8 to 14.1 lakh Cr ($130 to 170B) banker range",
     issueSize: "₹25,000 Cr fresh issue (OFS route dropped Mar 2026)",
     structure: "100% fresh issue under the new 2.5% minimum-float rule for ₹5L Cr+ companies",
     expectedListingGain:
-      "GMP not active — price band not announced. Street view: India's largest-ever listing, demand likely strong but priced-to-perfection.",
+      "GMP not active · price band not announced. Street view: India's largest-ever listing, demand likely strong but priced-to-perfection.",
     gainSentiment: "neutral",
     metrics: [
       ["Promoter", "Reliance Industries"],
-      ["Float at listing", "~2.5–3%"],
+      ["Float at listing", "~2.5 to 3%"],
       ["Use of proceeds", "Debt repayment, AI & network capex"],
       ["FY basis", "FY26 financials"],
     ],
     drhpFlags: [
-      "Valuation band implies rich multiples vs global telecom peers — little priced-in margin of safety.",
+      "Valuation band implies rich multiples vs global telecom peers · little priced-in margin of safety.",
       "Tiny 2.5% public float means thin liquidity and delayed index inclusion; price discovery may be volatile.",
       "Part of fresh-issue proceeds earmarked for debt repayment rather than pure growth capex.",
-      "Timeline has already slipped once (H1 2026 → H2 FY27) — execution-date risk.",
+      "Timeline has already slipped once (H1 2026 → H2 FY27) · execution-date risk.",
     ],
     newsQuery: "Reliance Jio IPO",
   },
@@ -68,10 +68,10 @@ export const IPO_PIPELINE: IpoDossier[] = [
       ["Overhang", "SEBI settlement conditions"],
     ],
     drhpFlags: [
-      "Legacy co-location / dark-fibre case and governance history — settled, but reputational overhang persists in the DRHP risk factors.",
+      "Legacy co-location / dark-fibre case and governance history · settled, but reputational overhang persists in the DRHP risk factors.",
       "Regulatory action on index-derivatives volumes (expiry-day curbs) directly hits its largest revenue line.",
-      "Pure OFS — no fresh capital enters the business; existing holders are exiting.",
-      "Single-regulator dependence: SEBI both regulates and must approve its listing — unusual conflict structure.",
+      "Pure OFS · no fresh capital enters the business; existing holders are exiting.",
+      "Single-regulator dependence: SEBI both regulates and must approve its listing · unusual conflict structure.",
     ],
     newsQuery: "NSE IPO National Stock Exchange listing",
   },
@@ -82,7 +82,7 @@ export const IPO_PIPELINE: IpoDossier[] = [
     status: "Confidential DRHP filed; IPO paused Mar 2026, pushed to ≥ Jun 2026",
     expectedTimeline: "H2 2026 if markets stabilise",
     valuation: "~$15B targeted at listing",
-    issueSize: "$1.2–1.5B",
+    issueSize: "$1.2 to 1.5B",
     structure: "Mix of fresh issue + OFS (Walmart partial exit)",
     expectedListingGain:
       "GMP not active. Caution: fintech listings (Paytm precedent) have a weak listing-day record when priced off private-market marks.",
@@ -94,11 +94,11 @@ export const IPO_PIPELINE: IpoDossier[] = [
       ["Last private mark", "$12B (2023)"],
     ],
     drhpFlags: [
-      "Core UPI business earns zero MDR by regulation — monetisation depends on newer, unproven lending/insurance lines.",
+      "Core UPI business earns zero MDR by regulation · monetisation depends on newer, unproven lending/insurance lines.",
       "NPCI market-share cap (30%) remains a standing regulatory threat to its #1 UPI position.",
-      "IPO already paused once on geopolitical volatility — timing risk is live.",
+      "IPO already paused once on geopolitical volatility · timing risk is live.",
       "OFS component means part of the raise exits to Walmart rather than funding growth.",
-      "Listing valuation ($15B) is only ~25% above the 2023 private round — limited private-investor cushion suggests aggressive pricing.",
+      "Listing valuation ($15B) is only ~25% above the 2023 private round · limited private-investor cushion suggests aggressive pricing.",
     ],
     newsQuery: "PhonePe IPO",
   },
@@ -108,11 +108,11 @@ export const IPO_PIPELINE: IpoDossier[] = [
     sector: "Consumer Electronics / Wearables",
     status: "Updated DRHP filed with SEBI",
     expectedTimeline: "2026 window, dates not announced",
-    valuation: "Reported ~₹12,000–15,000 Cr target (media estimates)",
+    valuation: "Reported ~₹12,000 to 15,000 Cr target (media estimates)",
     issueSize: "₹1,500 Cr (₹500 Cr fresh + ₹1,000 Cr OFS)",
     structure: "OFS-heavy: two-thirds of the issue is existing holders selling",
     expectedListingGain:
-      "GMP not active. Mid-cap consumer brand with strong recall; gain hinges on pricing discipline — previous 2022 attempt was shelved on weak markets.",
+      "GMP not active. Mid-cap consumer brand with strong recall; gain hinges on pricing discipline · previous 2022 attempt was shelved on weak markets.",
     gainSentiment: "neutral",
     metrics: [
       ["Brand", "#1 Indian audio wearables by volume"],
@@ -121,10 +121,10 @@ export const IPO_PIPELINE: IpoDossier[] = [
       ["Category", "Audio, smartwatches, accessories"],
     ],
     drhpFlags: [
-      "Two-thirds of the issue is OFS — limited fresh capital into the business.",
+      "Two-thirds of the issue is OFS · limited fresh capital into the business.",
       "Indian wearables category growth has decelerated sharply; smartwatch segment in volume decline.",
       "Thin margins with heavy dependence on China-linked supply chains.",
-      "Second attempt at listing after the 2022 withdrawal — market-window dependence.",
+      "Second attempt at listing after the 2022 withdrawal · market-window dependence.",
     ],
     newsQuery: "boAt Imagine Marketing IPO",
   },
@@ -134,7 +134,7 @@ export const IPO_PIPELINE: IpoDossier[] = [
     sector: "E-commerce",
     status: "DRHP preparation reported",
     expectedTimeline: "2026 pipeline",
-    valuation: "Last private mark ~$3.9–5B; listing target reported higher",
+    valuation: "Last private mark ~$3.9 to 5B; listing target reported higher",
     issueSize: "Not yet announced",
     structure: "Expected mix of fresh + OFS",
     expectedListingGain:
@@ -163,7 +163,7 @@ export const IPO_PIPELINE: IpoDossier[] = [
     issueSize: "Not yet announced",
     structure: "Expected mix of fresh + OFS; domicile flip completed",
     expectedListingGain:
-      "GMP not active. Quick-commerce is the market's hottest theme but also its most cash-hungry — listing reception will track sector sentiment.",
+      "GMP not active. Quick-commerce is the market's hottest theme but also its most cash-hungry · listing reception will track sector sentiment.",
     gainSentiment: "caution",
     metrics: [
       ["Model", "10-minute delivery dark stores"],
@@ -173,7 +173,7 @@ export const IPO_PIPELINE: IpoDossier[] = [
     ],
     drhpFlags: [
       "Severe cash burn across the quick-commerce industry; profitability timeline unproven.",
-      "Listed rivals (Eternal/Blinkit, Swiggy/Instamart) give the market a daily mark-to-market on sector economics — direct valuation anchor.",
+      "Listed rivals (Eternal/Blinkit, Swiggy/Instamart) give the market a daily mark-to-market on sector economics · direct valuation anchor.",
       "Dark-store expansion economics deteriorate outside the top-8 cities.",
     ],
     newsQuery: "Zepto IPO",
@@ -183,12 +183,12 @@ export const IPO_PIPELINE: IpoDossier[] = [
     company: "SBI Mutual Fund (AMC)",
     sector: "Asset Management",
     status: "Listing long-planned by SBI + Amundi",
-    expectedTimeline: "2026–27 window",
+    expectedTimeline: "2026 to 27 window",
     valuation: "Expected to list as India's largest AMC by AUM",
     issueSize: "Not yet announced (OFS by SBI/Amundi expected)",
     structure: "Offer-for-sale by parents",
     expectedListingGain:
-      "GMP not active. Listed AMC peers (HDFC AMC, Nippon) provide a clean valuation anchor — pop depends on discount to peers at pricing.",
+      "GMP not active. Listed AMC peers (HDFC AMC, Nippon) provide a clean valuation anchor · pop depends on discount to peers at pricing.",
     gainSentiment: "positive",
     metrics: [
       ["Scale", "#1 AMC by AUM in India"],
@@ -198,8 +198,8 @@ export const IPO_PIPELINE: IpoDossier[] = [
     ],
     drhpFlags: [
       "SEBI's TER (fee) compression agenda is a structural margin headwind for the whole AMC sector.",
-      "Heavy dependence on equity-market cycle — AUM and fees compress exactly when markets fall.",
-      "Pure OFS structure expected — no growth capital raised.",
+      "Heavy dependence on equity-market cycle · AUM and fees compress exactly when markets fall.",
+      "Pure OFS structure expected · no growth capital raised.",
     ],
     newsQuery: "SBI Mutual Fund IPO AMC",
   },

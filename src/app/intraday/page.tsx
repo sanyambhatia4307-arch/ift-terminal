@@ -58,7 +58,7 @@ function LevelsTable({ a }: { a: IntradayAnalysis }) {
           <div className="num mb-1.5 flex justify-between border-b border-border/60 pb-1.5 text-[11px]">
             <span className="text-muted-foreground">Opening Range (15m)</span>
             <span>
-              {fmt(a.levels.orLow)} – {fmt(a.levels.orHigh)}
+              {fmt(a.levels.orLow)} to {fmt(a.levels.orHigh)}
             </span>
           </div>
         )}
@@ -163,7 +163,7 @@ function TradePlanCard({ a }: { a: IntradayAnalysis }) {
 
         <p className="border-t border-border/60 pt-2 text-[9px] leading-snug text-muted-foreground">
           Computed from delayed free data using pivot/CPR/opening-range rules. Derivatives
-          carry high risk; lot sizes change with exchange circulars — verify before trading.
+          carry high risk; lot sizes change with exchange circulars · verify before trading.
           Educational only, not investment advice or a SEBI-registered recommendation.
         </p>
       </div>
@@ -227,7 +227,7 @@ export default function IntradayPage() {
             sub={`${a.plan.direction} setup`}
             tone={a.bias === "bullish" ? "bull" : a.bias === "bearish" ? "bear" : "primary"}
           />
-          <StatTile label="Central Pivot" numeric={a.levels.pivot} format={(n) => fmt(n)} sub={`CPR ${fmt(a.levels.bc)}–${fmt(a.levels.tc)}`} tone="primary" />
+          <StatTile label="Central Pivot" numeric={a.levels.pivot} format={(n) => fmt(n)} sub={`CPR ${fmt(a.levels.bc)} to ${fmt(a.levels.tc)}`} tone="primary" />
           <StatTile label="Nearest Support" numeric={a.levels.s1} format={(n) => fmt(n)} sub="S1 floor pivot" tone="bull" />
           <StatTile label="Nearest Resistance" numeric={a.levels.r1} format={(n) => fmt(n)} sub="R1 ceiling pivot" tone="bear" />
         </StatBand>

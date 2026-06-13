@@ -28,7 +28,7 @@ const SOURCES: Array<[string, string, string, string, string]> = [
 ];
 
 const PILLARS: Array<[string, string, string]> = [
-  ["Valuation", "P/E and P/B vs broad-market norms; upside to mean analyst target", "Cheap ≠ good and expensive ≠ bad — read with Growth and Quality"],
+  ["Valuation", "P/E and P/B vs broad-market norms; upside to mean analyst target", "Cheap ≠ good and expensive ≠ bad · read with Growth and Quality"],
   ["Growth", "YoY revenue growth and earnings growth from latest filings", "Above ~10-18% scores well; negative growth is heavily penalised"],
   ["Quality", "Return on equity, net margin, operating margin", "Measures how efficiently the business converts capital into profit"],
   ["Momentum", "Price vs 50/200-DMA, golden/death cross, 3M return, RSI(14) zone, 52w-high proximity", "The market's own vote; highest pillar weight (20%)"],
@@ -43,8 +43,8 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
     [
       ["P/E (TTM)", "Price ÷ trailing 12-month earnings per share. How many years of current profit you pay for the business."],
       ["P/B", "Price ÷ book value per share. Below ~1 can signal value or distress."],
-      ["EPS", "Earnings per share — net profit divided by share count."],
-      ["ROE", "Return on equity — profit generated per rupee of shareholder capital. >15% is generally strong."],
+      ["EPS", "Earnings per share · net profit divided by share count."],
+      ["ROE", "Return on equity · profit generated per rupee of shareholder capital. >15% is generally strong."],
       ["Debt/Equity", "Total debt ÷ shareholder equity. Above ~2x is heavily leveraged."],
       ["Market cap (Cr)", "Total value of all shares. 1 crore = 10 million; ₹1 lakh Cr ≈ $12B."],
       ["Dividend yield", "Annual dividends ÷ price, in %."],
@@ -55,24 +55,24 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
     "Technical Analysis",
     [
       ["50/200-DMA", "Average close over the last 50/200 trading days. Price above both = uptrend."],
-      ["Golden / Death cross", "50-DMA crossing above (golden) or below (death) the 200-DMA — regime-change signal."],
-      ["RSI (14)", "Momentum oscillator 0–100. >70 overbought, <30 oversold, 45–65 healthy trend zone."],
-      ["MACD", "Difference between 12 and 26-period EMAs vs its 9-period signal — momentum direction."],
+      ["Golden / Death cross", "50-DMA crossing above (golden) or below (death) the 200-DMA · regime-change signal."],
+      ["RSI (14)", "Momentum oscillator 0 to 100. >70 overbought, <30 oversold, 45 to 65 healthy trend zone."],
+      ["MACD", "Difference between 12 and 26-period EMAs vs its 9-period signal · momentum direction."],
       ["Support / Resistance", "Price zones where buying/selling has repeatedly appeared (recent 60-session extremes here)."],
       ["52-week high/low", "One-year price extremes; distance from them measures trend health and drawdown."],
       ["Volume", "Shares traded. Moves on high volume carry more conviction."],
-      ["Annualised volatility", "Standard deviation of daily returns × √252 — how violently the stock swings."],
+      ["Annualised volatility", "Standard deviation of daily returns × √252 · how violently the stock swings."],
     ],
   ],
   [
     "Intraday & Derivatives",
     [
-      ["Pivot points", "Levels computed from the prior session's High/Low/Close: P=(H+L+C)/3, with R1–R3 above and S1–S3 below."],
-      ["CPR", "Central Pivot Range — band between BC=(H+L)/2 and TC=2P−BC. Narrow CPR often precedes a trend day."],
+      ["Pivot points", "Levels computed from the prior session's High/Low/Close: P=(H+L+C)/3, with R1 to R3 above and S1 to S3 below."],
+      ["CPR", "Central Pivot Range · band between BC=(H+L)/2 and TC=2P−BC. Narrow CPR often precedes a trend day."],
       ["Opening Range (OR)", "First 15 minutes' high/low. Breakouts beyond it define early bias."],
       ["20-EMA (5m)", "Fast intraday trend filter; price holding above it supports longs."],
       ["Lot size", "Minimum contract quantity for futures/options (e.g. NIFTY 75). Changes by exchange circular."],
-      ["ATM option", "Strike nearest the current price — moves roughly half as fast as the index (delta ≈ 0.5)."],
+      ["ATM option", "Strike nearest the current price · moves roughly half as fast as the index (delta ≈ 0.5)."],
       ["Risk:Reward", "Points to target ÷ points to stop. Below 1:1 means risking more than the expected gain."],
     ],
   ],
@@ -80,9 +80,9 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
     "Market Structure & Flows",
     [
       ["FII / FPI", "Foreign institutional investors. Their net buy/sell (₹ Cr) is published nightly by NSE."],
-      ["DII", "Domestic institutions — mutual funds, insurers. Often the counterweight to FII flows."],
-      ["Advance / Decline", "Count of rising vs falling stocks — market breadth. Rallies on weak breadth are fragile."],
-      ["India VIX", "Implied volatility of NIFTY options — the market's fear gauge. >20 is elevated."],
+      ["DII", "Domestic institutions · mutual funds, insurers. Often the counterweight to FII flows."],
+      ["Advance / Decline", "Count of rising vs falling stocks · market breadth. Rallies on weak breadth are fragile."],
+      ["India VIX", "Implied volatility of NIFTY options · the market's fear gauge. >20 is elevated."],
       ["Sector rotation", "Money moving between sectors; the 1D sector bars make it visible."],
       ["Bulk / Block deal", "Large prints NSE publishes by name. Bulk = >0.5% of equity in a day; Block = negotiated-window trade. Big institutional buys/sells often precede multi-week moves."],
     ],
@@ -90,21 +90,21 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
   [
     "Intelligence, AI & Projections",
     [
-      ["Intelligence Score", "0–100 overall from seven explainable pillars; the stance chip (Constructive/Balanced/Cautious) is derived from it, never the reverse."],
+      ["Intelligence Score", "0 to 100 overall from seven explainable pillars; the stance chip (Constructive/Balanced/Cautious) is derived from it, never the reverse."],
       ["Pillar", "One scored dimension (Valuation, Growth, Quality, Momentum, Fin. Strength, Sentiment, Risk). Hover any bar to see the exact data that produced it."],
-      ["AI sentiment", "An NLP read of ~20 recent headlines that weighs materiality (results, guidance, orders, ratings) over routine coverage — more reliable than keyword counting."],
+      ["AI sentiment", "An NLP read of ~20 recent headlines that weighs materiality (results, guidance, orders, ratings) over routine coverage · more reliable than keyword counting."],
       ["Projection cone", "A forward statistical path: drift = momentum blended with AI sentiment and analyst targets, drawn dashed with a ±1σ volatility band. Orientation, not a prediction."],
-      ["Pattern read", "Auto-detected chart structures — golden/death cross, channels, squeezes, RSI extremes, 52w-breakout, support/resistance tests, volume surges — each tagged bullish/bearish/neutral."],
+      ["Pattern read", "Auto-detected chart structures · golden/death cross, channels, squeezes, RSI extremes, 52w-breakout, support/resistance tests, volume surges · each tagged bullish/bearish/neutral."],
       ["Results reaction", "How the stock actually moved across each of its last 8 earnings prints (close before → first close after), with the average, hit-rate and typical swing."],
-      ["EPS surprise", "Reported earnings per share vs the street estimate — a beat (actual above) or miss (below), shown as a percentage."],
+      ["EPS surprise", "Reported earnings per share vs the street estimate · a beat (actual above) or miss (below), shown as a percentage."],
     ],
   ],
   [
     "IPO",
     [
-      ["DRHP", "Draft Red Herring Prospectus — the filing with financials and the all-important Risk Factors section."],
+      ["DRHP", "Draft Red Herring Prospectus · the filing with financials and the all-important Risk Factors section."],
       ["OFS vs Fresh issue", "OFS: existing holders sell (no money to company). Fresh: new shares fund the business."],
-      ["GMP", "Grey-market premium — unofficial pre-listing price signal. Illiquid and frequently wrong."],
+      ["GMP", "Grey-market premium · unofficial pre-listing price signal. Illiquid and frequently wrong."],
       ["Listing gain", "Day-one pop vs issue price."],
       ["Price band / Issue size", "Offer price range and total amount raised."],
     ],
@@ -114,11 +114,11 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
 const MODULES: Array<[string, string, string]> = [
   // [code, module, what it does]
   ["HOME", "Dashboard", "Indices (clickable, with sparklines), watchlist strip, NIFTY 50 movers, Top Picks scan, Market Pulse (global tape + FII/DII + anomalies), breadth, sector bars."],
-  ["MKT", "Markets", "Every NSE index — click to expand constituents; top movers; sector chart; live bulk & block deals."],
+  ["MKT", "Markets", "Every NSE index · click to expand constituents; top movers; sector chart; live bulk & block deals."],
   ["INTR", "Intraday", "Index-derivative levels: 5-min chart with pivots/CPR/opening-range, a rule-based trade plan with entry/stop/targets and per-lot P&L."],
   ["EARN", "Earnings", "Upcoming NIFTY-50 results calendar; expand a row for an AI results brief + the last-8-prints reaction history and EPS surprises."],
   ["COMP", "Compare", "Up to four stocks side-by-side: fundamentals table + 1-year relative performance rebased to 100."],
-  ["IPO", "IPOs", "Pipeline dossiers — valuation, structure, DRHP risk flags, expected listing-gain setup, live news per name."],
+  ["IPO", "IPOs", "Pipeline dossiers · valuation, structure, DRHP risk flags, expected listing-gain setup, live news per name."],
   ["CMDT", "Commodities", "Global futures + Indian ETFs in ₹/unit; click any row for the full research view."],
   ["PORT", "Portfolio", "Add holdings (browser-local) for live P&L: total, day, per-position weight and return."],
   ["WLST", "Watchlist", "Your tracked securities with live quotes; add via ⌘K or the Watch button on any stock."],
@@ -175,16 +175,16 @@ export default function GuidePage() {
           <div className="space-y-2 p-3 text-[11.5px] leading-relaxed text-foreground/90">
             <p>
               Every number on this terminal flows through a <b>server-side data gateway</b>. The
-              browser never talks to NSE or Yahoo directly — it calls our own <span className="num">/api/*</span> routes,
+              browser never talks to NSE or Yahoo directly · it calls our own <span className="num">/api/*</span> routes,
               which fetch upstream, normalise the shapes, cache with{" "}
               <b>stale-while-revalidate</b> semantics (you get the cached value instantly while a
               fresh one loads behind the scenes), and fall back across sources when one is blocked
-              — e.g. indices try NSE first (real-time) and silently degrade to Yahoo (≤15-min
+              · e.g. indices try NSE first (real-time) and silently degrade to Yahoo (≤15-min
               delay) if NSE refuses.
             </p>
             <p>
               The frontend polls those routes with TanStack Query on per-data-class intervals
-              (quotes 20–60s, flows 2min, news 5min, fundamentals 6h), so panels stay alive
+              (quotes 20 to 60s, flows 2min, news 5min, fundamentals 6h), so panels stay alive
               without a page refresh. Charts are rendered by lightweight-charts (price/time
               series) and Recharts has been replaced by hand-built CSS visuals for the dense
               panels; state like your watchlist and portfolio persists in your browser via Zustand.
@@ -192,12 +192,12 @@ export default function GuidePage() {
           </div>
         </Panel>
 
-        <Panel code="AI" title="AI layer — how it's used & what it costs" className="xl:col-span-2">
+        <Panel code="AI" title="AI layer · how it's used & what it costs" className="xl:col-span-2">
           <div className="space-y-2 p-3 text-[11.5px] leading-relaxed text-foreground/90">
             <p>
               An optional LLM layer runs through <b>OpenRouter</b> with a deliberate two-tier
               split so cost stays near-zero. A <b>free model</b> ($0 in/out) does the high-volume
-              work — the materiality-weighted <b>news-sentiment NLP</b> that feeds the Sentiment
+              work · the materiality-weighted <b>news-sentiment NLP</b> that feeds the Sentiment
               pillar and the chart projection, plus the three-part <b>earnings briefs</b>. A
               <b> paid model</b> is reserved for the single place deep synthesis pays off: the
               Intelligence Score <b>analyst note</b> that reconciles all seven pillars with the
@@ -207,7 +207,7 @@ export default function GuidePage() {
               The paid tier is capped by a <b>daily token budget</b> (default 1,000,000
               tokens/day, resets at IST midnight). Each note costs ~1,000 tokens, so realistic use
               is a fraction of a rupee per day; the worst case at the cap is ~₹11/day. Once the
-              budget is spent, paid calls <b>silently downgrade to the free model</b> — analysis
+              budget is spent, paid calls <b>silently downgrade to the free model</b> · analysis
               never stops. Live budget headroom is exposed at{" "}
               <span className="num">/api/llm-status</span>. With no keys configured at all, every
               feature falls back to its deterministic non-AI version, and the labels in each panel
@@ -225,7 +225,7 @@ export default function GuidePage() {
                 </span>
                 <span>
                   <b className="text-foreground">{name}</b>{" "}
-                  <span className="text-muted-foreground">— {desc}</span>
+                  <span className="text-muted-foreground">· {desc}</span>
                 </span>
               </div>
             ))}
@@ -239,16 +239,16 @@ export default function GuidePage() {
           />
         </Panel>
 
-        <Panel code="INTL" title="Intelligence Score — methodology" className="xl:col-span-2">
+        <Panel code="INTL" title="Intelligence Score · methodology" className="xl:col-span-2">
           <div className="p-3">
             <p className="mb-2 text-[11.5px] leading-relaxed text-foreground/90">
               We deliberately avoid one-word Buy/Sell labels. Each security gets an{" "}
               <b>overall score out of 100</b> built from seven pillars; every pillar shows the
               exact data points that produced it (hover any pillar bar). The overall score is a
-              weighted mean — Momentum 20%, Valuation/Growth/Quality 15% each, Risk 15%
-              (inverted: high risk pulls the score down), Strength and Sentiment 10% each —
+              weighted mean · Momentum 20%, Valuation/Growth/Quality 15% each, Risk 15%
+              (inverted: high risk pulls the score down), Strength and Sentiment 10% each ·
               re-weighted over whichever pillars have data. The stance chip (Constructive ≥68 ·
-              Balanced 45–67 · Cautious &lt;45) is <b>derived from</b> the score, never the other
+              Balanced 45 to 67 · Cautious &lt;45) is <b>derived from</b> the score, never the other
               way around.
             </p>
             <SectionTable headers={["Pillar", "What feeds it", "How to read it"]} rows={PILLARS} />
@@ -270,12 +270,12 @@ export default function GuidePage() {
 
         <Panel code="READ" title="How to read the terminal" className="xl:col-span-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-2 p-3 text-[11px] leading-relaxed text-muted-foreground md:grid-cols-2">
-            <p><b className="text-foreground">Function codes</b> — the amber tags (IDX, PULS, INTL…) identify each module, Bloomberg-style. Green is always bullish/positive, red bearish/negative, amber neutral/attention.</p>
-            <p><b className="text-foreground">Timestamps</b> — every panel header shows when its data was last fetched and its refresh cadence. If something looks stale, the timestamp will say so.</p>
-            <p><b className="text-foreground">⌘K</b> — global search from anywhere; type any NSE/BSE name or symbol. Click any symbol anywhere to open its full research view.</p>
-            <p><b className="text-foreground">Flashes</b> — price cells flash green/red as live ticks arrive, so you can see the tape moving without reading every number.</p>
-            <p><b className="text-foreground">Intraday WAIT</b> — when the plan says WAIT, that is the advice: the engine found no edge inside the CPR band and gives you the breakout levels to watch instead.</p>
-            <p><b className="text-foreground">Everything is educational</b> — free, partly delayed data, rule-based analytics, no SEBI registration. Verify with your broker before acting.</p>
+            <p><b className="text-foreground">Function codes</b> · the amber tags (IDX, PULS, INTL…) identify each module, Bloomberg-style. Green is always bullish/positive, red bearish/negative, amber neutral/attention.</p>
+            <p><b className="text-foreground">Timestamps</b> · every panel header shows when its data was last fetched and its refresh cadence. If something looks stale, the timestamp will say so.</p>
+            <p><b className="text-foreground">⌘K</b> · global search from anywhere; type any NSE/BSE name or symbol. Click any symbol anywhere to open its full research view.</p>
+            <p><b className="text-foreground">Flashes</b> · price cells flash green/red as live ticks arrive, so you can see the tape moving without reading every number.</p>
+            <p><b className="text-foreground">Intraday WAIT</b> · when the plan says WAIT, that is the advice: the engine found no edge inside the CPR band and gives you the breakout levels to watch instead.</p>
+            <p><b className="text-foreground">Everything is educational</b> · free, partly delayed data, rule-based analytics, no SEBI registration. Verify with your broker before acting.</p>
           </div>
         </Panel>
       </div>

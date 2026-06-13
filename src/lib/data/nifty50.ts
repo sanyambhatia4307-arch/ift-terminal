@@ -1,5 +1,5 @@
 /**
- * NIFTY 50 constituents — fallback universe used when NSE's constituent
+ * NIFTY 50 constituents · fallback universe used when NSE's constituent
  * endpoint is unavailable (movers are then computed from Yahoo quotes).
  * Live NSE data takes precedence whenever reachable.
  */
