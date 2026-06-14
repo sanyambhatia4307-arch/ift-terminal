@@ -1,54 +1,18 @@
 "use client";
 
-import {
-  BookOpen,
-  Briefcase,
-  CalendarClock,
-  Coins,
-  Crosshair,
-  GitCompareArrows,
-  Globe2,
-  LayoutDashboard,
-  ListChecks,
-  Newspaper,
-  Radar,
-  Rocket,
-  Telescope,
-} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { TONE, type ToneName } from "@/lib/tones";
+import { NAV, isActive } from "@/components/shell/nav-items";
+import { TONE } from "@/lib/tones";
 import { cn } from "@/lib/utils";
-
-const NAV: Array<{
-  href: string;
-  label: string;
-  icon: typeof LayoutDashboard;
-  tone: ToneName;
-}> = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, tone: "amber" },
-  { href: "/markets", label: "Markets", icon: Globe2, tone: "blue" },
-  { href: "/screener", label: "Screener", icon: Telescope, tone: "violet" },
-  { href: "/rotation", label: "Rotation", icon: Radar, tone: "cyan" },
-  { href: "/intraday", label: "Intraday", icon: Crosshair, tone: "green" },
-  { href: "/earnings", label: "Earnings", icon: CalendarClock, tone: "violet" },
-  { href: "/compare", label: "Compare", icon: GitCompareArrows, tone: "cyan" },
-  { href: "/ipos", label: "IPOs", icon: Rocket, tone: "pink" },
-  { href: "/commodities", label: "Commodities", icon: Coins, tone: "orange" },
-  { href: "/portfolio", label: "Portfolio", icon: Briefcase, tone: "teal" },
-  { href: "/watchlist", label: "Watchlist", icon: ListChecks, tone: "teal" },
-  { href: "/news", label: "News", icon: Newspaper, tone: "blue" },
-  { href: "/guide", label: "Guide", icon: BookOpen, tone: "blue" },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
   return (
-    <aside className="flex w-44 shrink-0 flex-col border-r border-border bg-card/40">
+    <aside className="hidden w-44 shrink-0 flex-col border-r border-border bg-card/40 md:flex">
       <nav className="flex flex-col gap-px p-2">
         {NAV.map(({ href, label, icon: Icon, tone }) => {
-          const active =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const active = isActive(pathname, href);
           const color = TONE[tone];
           return (
             <Link

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import { Providers } from "@/app/providers";
 import { Sidebar } from "@/components/shell/Sidebar";
@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   title: "IFT · Indian Financial Intelligence Terminal",
   description:
     "Institutional-grade market intelligence terminal for Indian equities: live indices, movers, research, news and watchlists.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#15182a",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
