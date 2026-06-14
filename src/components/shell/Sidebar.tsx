@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ListChecks,
   Newspaper,
+  Radar,
   Rocket,
   Telescope,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const NAV: Array<{
   { href: "/", label: "Dashboard", icon: LayoutDashboard, tone: "amber" },
   { href: "/markets", label: "Markets", icon: Globe2, tone: "blue" },
   { href: "/screener", label: "Screener", icon: Telescope, tone: "violet" },
+  { href: "/rotation", label: "Rotation", icon: Radar, tone: "cyan" },
   { href: "/intraday", label: "Intraday", icon: Crosshair, tone: "green" },
   { href: "/earnings", label: "Earnings", icon: CalendarClock, tone: "violet" },
   { href: "/compare", label: "Compare", icon: GitCompareArrows, tone: "cyan" },

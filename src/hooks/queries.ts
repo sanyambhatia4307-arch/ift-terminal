@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import type { AnalysisResult } from "@/lib/analysis/engine";
 import type { IndicesPayload } from "@/lib/market";
+import type { RotationPayload } from "@/lib/analysis/rotation";
 import type { ScreenerPayload } from "@/lib/screener";
 import type {
   ChartResult,
@@ -121,6 +122,15 @@ export function useScreener() {
     queryFn: () => get<ScreenerPayload>("/api/screener"),
     staleTime: 15 * 60 * 1000,
     refetchInterval: 30 * 60 * 1000,
+  });
+}
+
+export function useRotation() {
+  return useQuery({
+    queryKey: ["rotation"],
+    queryFn: () => get<RotationPayload>("/api/rotation"),
+    staleTime: 10 * 60 * 1000,
+    refetchInterval: 15 * 60 * 1000,
   });
 }
 
