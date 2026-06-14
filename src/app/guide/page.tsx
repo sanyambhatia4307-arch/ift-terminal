@@ -12,10 +12,15 @@ const SOURCES: Array<[string, string, string, string, string]> = [
   ["FII/DII flows", "NSE fiidiiTradeReact", "2min poll", "Previous session (published nightly)", "₹ crore, provisional figures"],
   ["Stock quote & chart", "Yahoo v8 chart API", "20-60s poll", "≤15min", "OHLCV 1m→monthly; IST axis"],
   ["Fundamentals", "Yahoo quoteSummary (yahoo-finance2)", "6h cache", "Latest reported financials", "P/E, ROE, margins, debt, holders, street targets"],
-  ["Intelligence Score", "Computed in-house from the above + AI sentiment", "10min cache", "Recomputed on refresh", "Seven explainable pillars; no black box"],
+  ["Multi-year financials", "Yahoo fundamentalsTimeSeries (annual)", "24h cache", "Last 4-5 fiscal years", "Revenue/EBIT/PAT, margins, ROCE, FCF, cash conversion (legacy statement modules went dark in 2024)"],
+  ["Analyst estimates & revisions", "Yahoo earningsTrend", "6h cache", "Live consensus", "Forward EPS this/next year + count of up vs down revisions (30d); feeds Sentiment pillar"],
+  ["Screener", "Bulk quotes + cached fundamentals over the curated universe", "30min cache", "≤15min price · 6h fundamentals", "Factor sub-scores computed in-house; also yields sector medians for relative valuation"],
+  ["Sector rotation", "Yahoo 6-month charts for 12 sector indices vs NIFTY", "15min cache", "Daily bars", "Relative strength + RS-momentum → RRG quadrant"],
+  ["Intelligence Score", "Computed in-house from fundamentals, financials, estimates, technicals + AI", "10min cache", "Recomputed on refresh", "Seven explainable pillars; sector-relative valuation; no black box"],
   ["AI sentiment (NLP)", "OpenRouter free model on ~20 headlines", "10min cache", "Live", "Materiality-weighted; feeds Sentiment pillar + projection. Lexicon fallback"],
-  ["AI analyst note", "OpenRouter paid model (deepseek-v4-flash)", "10min cache", "Live", "Daily token budget; downgrades to free model when spent"],
-  ["Chart projection & patterns", "Computed: momentum + AI sentiment + targets", "10min cache", "Recomputed", "Dashed ±1σ cone + detected patterns; orientation only"],
+  ["AI scenario (dual-model)", "OpenRouter paid ensemble (deepseek-v4-flash + gpt-4o-mini)", "10min cache", "Live", "Averaged; shared 1M-token/day budget; downgrades to free model when spent"],
+  ["Chart scenario & patterns", "Computed: dual-model AI + momentum + detected pattern", "10min cache", "Recomputed", "Base/bull/bear scenario range (NOT a forecast) + breakout-aware patterns; orientation only"],
+  ["Portfolio beta", "Yahoo 1y daily returns regressed vs NIFTY 50", "6h cache", "Daily bars", "Computed in-house (vendor beta for .NS names is unreliable)"],
   ["News (all surfaces)", "Google News RSS (India) + ET Markets RSS", "5min poll", "Live headlines", "Deduplicated across sources"],
   ["Earnings calendar & briefs", "Yahoo calendarEvents + NSE dates + AI brief", "12h cache", "Live", "Upcoming dates; expansion adds AI results brief"],
   ["Results reactions", "NSE event-calendar dates + Yahoo prices/EPS", "12h cache", "Historical", "Last 8 prints: day-after move + EPS surprise"],
@@ -28,12 +33,12 @@ const SOURCES: Array<[string, string, string, string, string]> = [
 ];
 
 const PILLARS: Array<[string, string, string]> = [
-  ["Valuation", "P/E and P/B vs broad-market norms; upside to mean analyst target", "Cheap ≠ good and expensive ≠ bad · read with Growth and Quality"],
-  ["Growth", "YoY revenue growth and earnings growth from latest filings", "Above ~10-18% scores well; negative growth is heavily penalised"],
-  ["Quality", "Return on equity, net margin, operating margin", "Measures how efficiently the business converts capital into profit"],
+  ["Valuation", "P/E and P/B scored RELATIVE to the sector median (not absolute) + PEG; upside to mean analyst target", "A 40x compounder isn't 'expensive' if its sector trades at 40x · the driver shows the premium/discount vs sector"],
+  ["Growth", "Multi-year revenue & earnings CAGR and growth consistency (years grown of N), from the financials series", "Durable compounding beats one lumpy YoY print; falls back to YoY when history is thin"],
+  ["Quality", "ROCE and cash conversion (FCF/PAT) lead, plus ROE and margins", "ROCE is the capital-efficiency metric Indian investors rank on; cash conversion catches accounting-only profit"],
   ["Momentum", "Price vs 50/200-DMA, golden/death cross, 3M return, RSI(14) zone, 52w-high proximity", "The market's own vote; highest pillar weight (20%)"],
   ["Fin. Strength", "Debt/equity, cash coverage of debt", "Balance-sheet resilience in a downturn"],
-  ["Sentiment", "AI NLP read of ~20 recent headlines (materiality-weighted) + analyst consensus; keyword lexicon fallback", "Shows the AI's one-line rationale as its driver; refreshed every run"],
+  ["Sentiment", "Leads with analyst EPS-estimate revisions (up vs down, 30d) + consensus, then the dual-model AI headline read", "A hard signal (revisions) ahead of model tone; lexicon fallback when AI/coverage is absent"],
   ["Risk", "Annualised volatility, 52w drawdown, beta, leverage, institutional concentration", "Shown un-inverted: a HIGH risk score means MORE risk; it lowers the overall score"],
 ];
 
@@ -45,6 +50,9 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
       ["P/B", "Price ÷ book value per share. Below ~1 can signal value or distress."],
       ["EPS", "Earnings per share · net profit divided by share count."],
       ["ROE", "Return on equity · profit generated per rupee of shareholder capital. >15% is generally strong."],
+      ["ROCE", "Return on capital employed · EBIT ÷ (total assets − current liabilities). Debt-adjusted capital efficiency; the headline Indian quality metric. >15% is strong."],
+      ["PEG", "P/E ÷ earnings growth %. Below 1 suggests growth is cheap relative to the multiple paid."],
+      ["FCF / Cash conversion", "Free cash flow = operating cash flow − capex. Cash conversion = FCF ÷ net profit; low or negative conversion means profit isn't turning into cash."],
       ["Debt/Equity", "Total debt ÷ shareholder equity. Above ~2x is heavily leveraged."],
       ["Market cap (Cr)", "Total value of all shares. 1 crore = 10 million; ₹1 lakh Cr ≈ $12B."],
       ["Dividend yield", "Annual dividends ÷ price, in %."],
@@ -83,7 +91,8 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
       ["DII", "Domestic institutions · mutual funds, insurers. Often the counterweight to FII flows."],
       ["Advance / Decline", "Count of rising vs falling stocks · market breadth. Rallies on weak breadth are fragile."],
       ["India VIX", "Implied volatility of NIFTY options · the market's fear gauge. >20 is elevated."],
-      ["Sector rotation", "Money moving between sectors; the 1D sector bars make it visible."],
+      ["Sector rotation / RRG", "Money moving between sectors. The Rotation page ranks each sector by relative strength vs NIFTY and plots it on a Relative Rotation Graph: Improving → Leading → Weakening → Lagging."],
+      ["Relative strength (RS)", "A sector or stock's return minus the benchmark's over the same window. Positive RS = outperforming the market."],
       ["Bulk / Block deal", "Large prints NSE publishes by name. Bulk = >0.5% of equity in a day; Block = negotiated-window trade. Big institutional buys/sells often precede multi-week moves."],
     ],
   ],
@@ -93,8 +102,9 @@ const GLOSSARY: Array<[string, Array<[string, string]>]> = [
       ["Intelligence Score", "0 to 100 overall from seven explainable pillars; the stance chip (Constructive/Balanced/Cautious) is derived from it, never the reverse."],
       ["Pillar", "One scored dimension (Valuation, Growth, Quality, Momentum, Fin. Strength, Sentiment, Risk). Hover any bar to see the exact data that produced it."],
       ["AI sentiment", "An NLP read of ~20 recent headlines that weighs materiality (results, guidance, orders, ratings) over routine coverage · more reliable than keyword counting."],
-      ["Projection cone", "A forward statistical path: drift = momentum blended with AI sentiment and analyst targets, drawn dashed with a ±1σ volatility band. Orientation, not a prediction."],
-      ["Pattern read", "Auto-detected chart structures · golden/death cross, channels, squeezes, RSI extremes, 52w-breakout, support/resistance tests, volume surges · each tagged bullish/bearish/neutral."],
+      ["Scenario range", "Base/bull/bear target prices over a horizon from the dual-model AI blended with the detected pattern. Explicitly a scenario of how the move could play out if conditions hold — NOT a forecast or price target."],
+      ["Estimate revisions", "The count of analysts raising vs cutting their EPS estimate over the last 30 days. Net upgrades is a leading bullish signal; it leads the Sentiment pillar."],
+      ["Pattern read", "Auto-detected chart structures · triangles, wedges, channels, double tops/bottoms · drawn with their rails extended to the breakout zone and an explicit trigger level + measured-move target."],
       ["Results reaction", "How the stock actually moved across each of its last 8 earnings prints (close before → first close after), with the average, hit-rate and typical swing."],
       ["EPS surprise", "Reported earnings per share vs the street estimate · a beat (actual above) or miss (below), shown as a percentage."],
     ],
@@ -115,15 +125,17 @@ const MODULES: Array<[string, string, string]> = [
   // [code, module, what it does]
   ["HOME", "Dashboard", "Indices (clickable, with sparklines), watchlist strip, NIFTY 50 movers, Top Picks scan, Market Pulse (global tape + FII/DII + anomalies), breadth, sector bars."],
   ["MKT", "Markets", "Every NSE index · click to expand constituents; top movers; sector chart; live bulk & block deals."],
-  ["INTR", "Intraday", "Index-derivative levels: 5-min chart with pivots/CPR/opening-range, a rule-based trade plan with entry/stop/targets and per-lot P&L."],
+  ["SCRN", "Screener", "Filter & rank the ~130-name universe on valuation/quality/growth/momentum with transparent factor sub-scores; 6 preset screens (Quality compounders, Value, Growth leaders, Momentum, Low-debt high-ROE) + custom filters."],
+  ["ROTN", "Sector Rotation", "Relative strength of the 12 sector indices vs NIFTY across 1M/3M/6M, placed on a Relative Rotation Graph (Leading/Weakening/Lagging/Improving) so you see leadership moving early."],
+  ["INTR", "Intraday", "Index-derivative levels: 5-min chart with pivots/CPR/opening-range, a rule-based trade plan with entry/stop/targets drawn on the chart, and per-lot P&L."],
   ["EARN", "Earnings", "Upcoming NIFTY-50 results calendar; expand a row for an AI results brief + the last-8-prints reaction history and EPS surprises."],
   ["COMP", "Compare", "Up to four stocks side-by-side: fundamentals table + 1-year relative performance rebased to 100."],
   ["IPO", "IPOs", "Pipeline dossiers · valuation, structure, DRHP risk flags, expected listing-gain setup, live news per name."],
   ["CMDT", "Commodities", "Global futures + Indian ETFs in ₹/unit; click any row for the full research view."],
-  ["PORT", "Portfolio", "Add holdings (browser-local) for live P&L: total, day, per-position weight and return."],
-  ["WLST", "Watchlist", "Your tracked securities with live quotes; add via ⌘K or the Watch button on any stock."],
+  ["PORT", "Portfolio", "Browser-local holdings for live P&L, plus Risk & Exposure: sector exposure, concentration (top-5, effective positions), contribution to P&L and portfolio beta computed vs NIFTY from 1y returns."],
+  ["WLST", "Watchlist", "Tracked securities with live quotes, a 'what changed today' signal feed (3%+ movers, 52-week extremes) and browser-side price alerts (crosses above / drops below) evaluated against the live feed."],
   ["NWS", "News", "Aggregated Indian market coverage with topic filters and search."],
-  ["STK", "Stock research", "Per security: chart with projection + patterns, Intelligence Score, fundamentals + quarterly trend, management commentary + reactions, news."],
+  ["STK", "Stock research", "Per security: chart with scenario projection + breakout patterns, Intelligence Score, multi-year Financials (ROCE/FCF/cash conversion), Peer comparison vs sector, Analyst estimates & revisions, management commentary + reactions, news."],
 ];
 
 function SectionTable({ rows, headers }: { rows: string[][]; headers: string[] }) {
@@ -198,10 +210,11 @@ export default function GuidePage() {
               An optional LLM layer runs through <b>OpenRouter</b> with a deliberate two-tier
               split so cost stays near-zero. A <b>free model</b> ($0 in/out) does the high-volume
               work · the materiality-weighted <b>news-sentiment NLP</b> that feeds the Sentiment
-              pillar and the chart projection, plus the three-part <b>earnings briefs</b>. A
-              <b> paid model</b> is reserved for the single place deep synthesis pays off: the
-              Intelligence Score <b>analyst note</b> that reconciles all seven pillars with the
-              technical and news picture.
+              pillar and the chart scenario, plus the three-part <b>earnings briefs</b>. A{" "}
+              <b>two-model paid ensemble</b> (deepseek-v4-flash + gpt-4o-mini, averaged) is reserved
+              for the places deep synthesis pays off: the technical/sentiment read behind the
+              base/bull/bear scenario and the Intelligence Score <b>analyst note</b> that reconciles
+              all seven pillars with the technical and news picture.
             </p>
             <p>
               The paid tier is capped by a <b>daily token budget</b> (default 1,000,000
