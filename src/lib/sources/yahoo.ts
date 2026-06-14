@@ -1,6 +1,8 @@
 import YahooFinance from "yahoo-finance2";
 import type {
   ChartResult,
+  EstimatePeriod,
+  EstimatesData,
   FinancialsData,
   FinancialYear,
   FundamentalsData,
@@ -297,6 +299,40 @@ export async function yahooFinancials(symbol: string): Promise<FinancialsData> {
     latestFcf: latest?.fcf,
     latestCashConversion: latest?.cashConversion,
   };
+}
+
+/** Forward EPS estimates and analyst revision momentum (real sentiment signal). */
+export async function yahooEstimates(symbol: string): Promise<EstimatesData> {
+  const ySym = toYahooSymbol(symbol);
+  const r = await yf.quoteSummary(ySym, { modules: ["earningsTrend"] });
+  const trend = r.earningsTrend?.trend ?? [];
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+
+  const pick = (period: string, label: string): EstimatePeriod | undefined => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t: any = trend.find((x) => x.period === period);
+    if (!t) return undefined;
+    const ee = t.earningsEstimate ?? {};
+    const rev = t.epsRevisions ?? {};
+    return {
+      label,
+      eps: num(ee.avg),
+      growth: num(t.growth),
+      analysts: num(ee.numberOfAnalysts),
+      up30: num(rev.upLast30days),
+      down30: num(rev.downLast30days),
+    };
+  };
+
+  const current = pick("0y", "This year");
+  const next = pick("+1y", "Next year");
+  const up = current?.up30 ?? 0;
+  const down = current?.down30 ?? 0;
+  const netRevision30 = up - down;
+  const revisionTrend: EstimatesData["revisionTrend"] =
+    up + down === 0 ? "flat" : netRevision30 > 0 ? "up" : netRevision30 < 0 ? "down" : "flat";
+
+  return { symbol, current, next, netRevision30, revisionTrend };
 }
 
 export async function yahooFundamentals(symbol: string): Promise<FundamentalsData> {

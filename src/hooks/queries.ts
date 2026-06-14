@@ -8,6 +8,7 @@ import type { RotationPayload } from "@/lib/analysis/rotation";
 import type { ScreenerPayload } from "@/lib/screener";
 import type {
   ChartResult,
+  EstimatesData,
   FinancialsData,
   FundamentalsData,
   MarketStatusInfo,
@@ -103,6 +104,15 @@ export function useFinancials(symbol: string | undefined) {
     queryFn: () => get<FinancialsData>(`/api/financials/${encodeURIComponent(symbol!)}`),
     enabled: !!symbol,
     staleTime: 12 * 60 * 60 * 1000,
+  });
+}
+
+export function useEstimates(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["estimates", symbol],
+    queryFn: () => get<EstimatesData>(`/api/estimates/${encodeURIComponent(symbol!)}`),
+    enabled: !!symbol,
+    staleTime: 6 * 60 * 60 * 1000,
   });
 }
 

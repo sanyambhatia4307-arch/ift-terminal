@@ -1,5 +1,6 @@
 import { ManagementCommentary } from "@/components/earnings/EarningsBrief";
 import { AnalysisPanel } from "@/components/stock/AnalysisPanel";
+import { Estimates } from "@/components/stock/Estimates";
 import { Financials } from "@/components/stock/Financials";
 import { KeyStats } from "@/components/stock/KeyStats";
 import { PeerComps } from "@/components/stock/PeerComps";
@@ -27,6 +28,7 @@ export default async function StockPage({
         </div>
         <div className="stagger flex min-h-0 flex-col gap-2">
           <AnalysisPanel symbol={symbol} />
+          <Estimates symbol={symbol} />
           <KeyStats symbol={symbol} className="flex-1" />
         </div>
       </div>

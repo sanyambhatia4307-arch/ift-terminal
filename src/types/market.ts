@@ -121,6 +121,23 @@ export interface FinancialYear {
   cashConversion?: number; // FCF / net income, %
 }
 
+export interface EstimatePeriod {
+  label: string;
+  eps?: number;
+  growth?: number; // expected EPS growth (fraction)
+  analysts?: number;
+  up30?: number; // estimates revised up in last 30 days
+  down30?: number;
+}
+
+export interface EstimatesData {
+  symbol: string;
+  current?: EstimatePeriod;
+  next?: EstimatePeriod;
+  netRevision30?: number; // up30 − down30 for the current year
+  revisionTrend?: "up" | "down" | "flat";
+}
+
 export interface FinancialsData {
   symbol: string;
   years: FinancialYear[]; // chronological (oldest first)

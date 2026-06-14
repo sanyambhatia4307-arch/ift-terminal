@@ -2,9 +2,9 @@ import { getAiAnalysis, type AiAnalysis } from "@/lib/analysis/ai";
 import type { EnsembleModelView } from "@/lib/analysis/llm";
 import { computeIndicators, type TechnicalIndicators } from "@/lib/analysis/technical";
 import { scoreNewsSentiment, type SentimentResult } from "@/lib/analysis/sentiment";
-import { getChart, getFinancials, getFundamentals, getNews } from "@/lib/market";
+import { getChart, getEstimates, getFinancials, getFundamentals, getNews } from "@/lib/market";
 import { getSectorMedians, type SectorMedians } from "@/lib/screener";
-import type { FinancialsData, FundamentalsData, NewsItem } from "@/types/market";
+import type { EstimatesData, FinancialsData, FundamentalsData, NewsItem } from "@/types/market";
 
 /**
  * Investment Intelligence Framework.
@@ -284,9 +284,23 @@ function sentimentPillar(
   s: SentimentResult,
   f: FundamentalsData | null,
   newsCount: number,
-  ai: AiAnalysis | null
+  ai: AiAnalysis | null,
+  est?: EstimatesData | null
 ): PillarScore {
   const b: PillarBuild = { scores: [], drivers: [], cautions: [] };
+
+  // Lead with analyst estimate revisions · a hard signal, not model tone.
+  const up = est?.current?.up30 ?? 0;
+  const down = est?.current?.down30 ?? 0;
+  if (up + down > 0) {
+    const net = up - down;
+    const sc = clamp100(50 + (net / (up + down)) * 42);
+    b.scores.push(sc);
+    (net >= 0 ? b.drivers : b.cautions).push(
+      `Analyst EPS estimates revised ${up} up / ${down} down (30d)`
+    );
+  }
+
   const aiUsable = ai && ai.source !== "none" && ai.models.length > 0;
   if (aiUsable) {
     // Dual-model averaged sentiment, materiality-weighted, preferred over lexicon.
@@ -375,6 +389,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
 
   // Multi-year financials for ROCE / cash conversion · best-effort.
   const financials = await getFinancials(symbol).catch(() => null);
+  const estimates = await getEstimates(symbol).catch(() => null);
 
   const pillars: PillarScore[] = [
     valuationPillar(fundamentals, technicals.last, secMed),
@@ -382,7 +397,7 @@ export async function buildAnalysis(symbol: string): Promise<AnalysisResult> {
     qualityPillar(fundamentals, financials),
     momentumPillar(technicals),
     strengthPillar(fundamentals),
-    sentimentPillar(sentiment, fundamentals, news.length, ai),
+    sentimentPillar(sentiment, fundamentals, news.length, ai, estimates),
     riskPillar(technicals, fundamentals),
   ];
 

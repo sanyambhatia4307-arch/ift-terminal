@@ -29,7 +29,7 @@ const CODE_TONES: Record<string, ToneName> = {
   ROTN: "cyan", RRG: "cyan",
   // Intelligence & earnings
   INTL: "violet", ENGN: "violet", PICK: "violet", EARN: "violet", ARCH: "violet",
-  SCRN: "violet", RANK: "violet", FILT: "cyan",
+  SCRN: "violet", RANK: "violet", FILT: "cyan", EST: "violet",
   // Trading
   INTR: "green", PLAN: "green", GAIN: "green",
   LOSE: "red",
