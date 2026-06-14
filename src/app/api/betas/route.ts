@@ -2,7 +2,6 @@ import { handle } from "@/lib/api-route";
 import { getBetas } from "@/lib/analysis/risk";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
 
 /** Beta vs NIFTY 50 for a set of symbols · `?symbols=A,B,C`. */
 export function GET(req: Request) {
