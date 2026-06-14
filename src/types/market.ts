@@ -121,6 +121,43 @@ export interface FinancialYear {
   cashConversion?: number; // FCF / net income, %
 }
 
+export interface OptionStrikeRow {
+  strike: number;
+  ceOI?: number;
+  ceChg?: number;
+  peOI?: number;
+  peChg?: number;
+  ceIV?: number;
+  peIV?: number;
+}
+
+export interface OptionChainData {
+  symbol: string;
+  underlying?: number;
+  expiry?: string;
+  pcr?: number; // put OI / call OI
+  maxPain?: number;
+  support?: number; // strike with the most put OI (downside wall)
+  resistance?: number; // strike with the most call OI (upside wall)
+  totalCallOI?: number;
+  totalPutOI?: number;
+  rows: OptionStrikeRow[]; // strikes around the money
+}
+
+export interface ShareholdingQuarter {
+  date: string;
+  promoter?: number;
+  publicHolding?: number;
+}
+
+export interface ShareholdingData {
+  symbol: string;
+  quarters: ShareholdingQuarter[];
+  promoterLatest?: number;
+  promoterChange?: number; // latest − earliest over the window (percentage points)
+  trend: "rising" | "falling" | "stable";
+}
+
 export interface EstimatePeriod {
   label: string;
   eps?: number;

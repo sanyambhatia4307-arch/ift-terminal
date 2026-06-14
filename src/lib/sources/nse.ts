@@ -1,4 +1,12 @@
-import type { IndexQuote, MarketStatusInfo, Mover } from "@/types/market";
+import type {
+  IndexQuote,
+  MarketStatusInfo,
+  Mover,
+  OptionChainData,
+  OptionStrikeRow,
+  ShareholdingData,
+  ShareholdingQuarter,
+} from "@/types/market";
 
 /**
  * NSE's public JSON API sits behind Akamai. Some endpoints respond bare;
@@ -204,6 +212,122 @@ export async function nseLargeDeals(): Promise<{ asOn: string; deals: LargeDeal[
       ...map(data.BULK_DEALS_DATA, "BULK"),
     ].sort((a, b) => b.qty * b.price - a.qty * a.price),
   };
+}
+
+/* ---- Options / OI (index derivatives) ---- */
+
+interface OcLeg {
+  openInterest?: number;
+  changeinOpenInterest?: number;
+  impliedVolatility?: number;
+}
+interface OcRow {
+  strikePrice: number;
+  CE?: OcLeg;
+  PE?: OcLeg;
+}
+
+/** Option-chain snapshot for an index derivative (NIFTY/BANKNIFTY/FINNIFTY/MIDCPNIFTY). */
+export async function nseOptionChain(symbol: string): Promise<OptionChainData> {
+  const sym = symbol.toUpperCase();
+  const ci = await nseJson<{ expiryDates?: string[] }>(
+    `/api/option-chain-contract-info?symbol=${encodeURIComponent(sym)}`
+  );
+  const expiry = ci.expiryDates?.[0];
+  if (!expiry) throw new Error(`No option expiry for ${sym}`);
+
+  const oc = await nseJson<{
+    records?: { data?: OcRow[]; underlyingValue?: number };
+    filtered?: { CE?: { totOI?: number }; PE?: { totOI?: number } };
+  }>(`/api/option-chain-v3?type=Indices&symbol=${encodeURIComponent(sym)}&expiry=${encodeURIComponent(expiry)}`);
+
+  const data = oc.records?.data ?? [];
+  const underlying = oc.records?.underlyingValue;
+  const all: OptionStrikeRow[] = data
+    .filter((d) => d.CE || d.PE)
+    .map((d) => ({
+      strike: d.strikePrice,
+      ceOI: d.CE?.openInterest,
+      ceChg: d.CE?.changeinOpenInterest,
+      peOI: d.PE?.openInterest,
+      peChg: d.PE?.changeinOpenInterest,
+      ceIV: d.CE?.impliedVolatility || undefined,
+      peIV: d.PE?.impliedVolatility || undefined,
+    }));
+
+  const totalCallOI = oc.filtered?.CE?.totOI ?? all.reduce((a, r) => a + (r.ceOI ?? 0), 0);
+  const totalPutOI = oc.filtered?.PE?.totOI ?? all.reduce((a, r) => a + (r.peOI ?? 0), 0);
+  const pcr = totalCallOI > 0 ? Math.round((totalPutOI / totalCallOI) * 100) / 100 : undefined;
+
+  const maxBy = (sel: (r: OptionStrikeRow) => number) =>
+    all.length ? all.reduce((m, r) => (sel(r) > sel(m) ? r : m), all[0]).strike : undefined;
+  const resistance = maxBy((r) => r.ceOI ?? 0); // call writers defend above
+  const support = maxBy((r) => r.peOI ?? 0); // put writers defend below
+
+  // Max pain: strike that minimises total option-writer payout at expiry.
+  let maxPain: number | undefined;
+  let best = Infinity;
+  for (const cand of all) {
+    const P = cand.strike;
+    let loss = 0;
+    for (const r of all) {
+      loss += (r.ceOI ?? 0) * Math.max(0, P - r.strike) + (r.peOI ?? 0) * Math.max(0, r.strike - P);
+    }
+    if (loss < best) {
+      best = loss;
+      maxPain = P;
+    }
+  }
+
+  // Keep the ~14 strikes nearest the money for the table.
+  const rows = underlying
+    ? [...all]
+        .sort((a, b) => Math.abs(a.strike - underlying) - Math.abs(b.strike - underlying))
+        .slice(0, 14)
+        .sort((a, b) => a.strike - b.strike)
+    : all;
+
+  return { symbol: sym, underlying, expiry, pcr, maxPain, support, resistance, totalCallOI, totalPutOI, rows };
+}
+
+/* ---- Shareholding pattern (promoter trend) ---- */
+
+const MONTHS: Record<string, number> = {
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+};
+function parseNseDate(d: string): number {
+  const [dd, mon, yyyy] = d.split("-");
+  return new Date(Number(yyyy), MONTHS[mon] ?? 0, Number(dd)).getTime();
+}
+
+/** Quarterly promoter / public holding trend from NSE corporate filings. */
+export async function nseShareholding(symbol: string): Promise<ShareholdingData> {
+  const r = await nseJson<{
+    shareholdings_patterns?: { data?: Record<string, Array<Record<string, string>>> };
+  }>(`/api/top-corp-info?symbol=${encodeURIComponent(symbol.toUpperCase())}&market=equities`);
+
+  const data = r.shareholdings_patterns?.data ?? {};
+  const val = (arr: Array<Record<string, string>>, key: string) => {
+    const o = arr.find((x) => key in x);
+    const n = o ? parseFloat(o[key]) : NaN;
+    return Number.isFinite(n) ? n : undefined;
+  };
+  const quarters: ShareholdingQuarter[] = Object.entries(data)
+    .map(([date, arr]) => ({
+      date,
+      promoter: val(arr, "Promoter & Promoter Group"),
+      publicHolding: val(arr, "Public"),
+    }))
+    .sort((a, b) => parseNseDate(a.date) - parseNseDate(b.date));
+
+  const withProm = quarters.filter((q) => q.promoter != null);
+  const promoterLatest = withProm.length ? withProm[withProm.length - 1].promoter : undefined;
+  const promoterChange =
+    withProm.length >= 2 ? (withProm[withProm.length - 1].promoter! - withProm[0].promoter!) : undefined;
+  const trend: ShareholdingData["trend"] =
+    promoterChange == null ? "stable" : promoterChange > 0.3 ? "rising" : promoterChange < -0.3 ? "falling" : "stable";
+
+  return { symbol: symbol.toUpperCase(), quarters, promoterLatest, promoterChange, trend };
 }
 
 /** Historical board-meeting dates for financial results (newest first). */

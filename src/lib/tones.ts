@@ -31,7 +31,8 @@ const CODE_TONES: Record<string, ToneName> = {
   INTL: "violet", ENGN: "violet", PICK: "violet", EARN: "violet", ARCH: "violet",
   SCRN: "violet", RANK: "violet", FILT: "cyan", EST: "violet",
   // Trading
-  INTR: "green", PLAN: "green", GAIN: "green",
+  INTR: "green", PLAN: "green", GAIN: "green", OPTS: "orange",
+  SHLD: "teal",
   LOSE: "red",
   DEAL: "orange", ENRG: "orange",
   // Personal

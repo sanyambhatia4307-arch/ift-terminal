@@ -5,6 +5,7 @@ import axios from "axios";
 import { Crosshair } from "lucide-react";
 import { useState } from "react";
 import { IntradayChart } from "@/components/intraday/IntradayChart";
+import { OptionsPanel } from "@/components/intraday/OptionsPanel";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -254,6 +255,7 @@ export default function IntradayPage() {
           </Panel>
           <div className="space-y-2">
             <TradePlanCard a={a} />
+            <OptionsPanel symbol={key} />
             <LevelsTable a={a} />
           </div>
         </div>

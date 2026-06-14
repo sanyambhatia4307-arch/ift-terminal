@@ -5,6 +5,8 @@ import {
   nseAllIndices,
   nseIndexConstituents,
   nseMarketStatus,
+  nseOptionChain,
+  nseShareholding,
 } from "@/lib/sources/nse";
 import {
   yahooChart,
@@ -24,7 +26,9 @@ import type {
   MarketStatusInfo,
   MoversResult,
   NewsItem,
+  OptionChainData,
   SearchResult,
+  ShareholdingData,
   StockQuote,
 } from "@/types/market";
 
@@ -219,6 +223,16 @@ export function getFinancials(symbol: string): Promise<FinancialsData> {
 export function getEstimates(symbol: string): Promise<EstimatesData> {
   return cached(`estimates:${symbol}`, 6 * 60 * 60 * 1000, () =>
     yahooEstimates(symbol)
+  );
+}
+
+export function getOptionChain(symbol: string): Promise<OptionChainData> {
+  return cached(`options:${symbol}`, 60_000, () => nseOptionChain(symbol));
+}
+
+export function getShareholding(symbol: string): Promise<ShareholdingData> {
+  return cached(`shareholding:${symbol}`, 12 * 60 * 60 * 1000, () =>
+    nseShareholding(symbol)
   );
 }
 

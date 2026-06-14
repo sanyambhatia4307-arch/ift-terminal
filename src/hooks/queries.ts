@@ -14,7 +14,9 @@ import type {
   MarketStatusInfo,
   MoversResult,
   NewsItem,
+  OptionChainData,
   SearchResult,
+  ShareholdingData,
   StockQuote,
 } from "@/types/market";
 
@@ -104,6 +106,27 @@ export function useFinancials(symbol: string | undefined) {
     queryFn: () => get<FinancialsData>(`/api/financials/${encodeURIComponent(symbol!)}`),
     enabled: !!symbol,
     staleTime: 12 * 60 * 60 * 1000,
+  });
+}
+
+export function useOptionChain(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["options", symbol],
+    queryFn: () => get<OptionChainData>(`/api/options/${encodeURIComponent(symbol!)}`),
+    enabled: !!symbol,
+    refetchInterval: 90_000,
+    staleTime: 60_000,
+    retry: 0,
+  });
+}
+
+export function useShareholding(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["shareholding", symbol],
+    queryFn: () => get<ShareholdingData>(`/api/shareholding/${encodeURIComponent(symbol!)}`),
+    enabled: !!symbol,
+    staleTime: 6 * 60 * 60 * 1000,
+    retry: 0,
   });
 }
 

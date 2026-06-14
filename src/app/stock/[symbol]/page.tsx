@@ -5,6 +5,7 @@ import { Financials } from "@/components/stock/Financials";
 import { KeyStats } from "@/components/stock/KeyStats";
 import { PeerComps } from "@/components/stock/PeerComps";
 import { PriceChart } from "@/components/stock/PriceChart";
+import { Shareholding } from "@/components/stock/Shareholding";
 import { StockHeader } from "@/components/stock/StockHeader";
 import { StockNews } from "@/components/stock/StockNews";
 
@@ -29,6 +30,7 @@ export default async function StockPage({
         <div className="stagger flex min-h-0 flex-col gap-2">
           <AnalysisPanel symbol={symbol} />
           <Estimates symbol={symbol} />
+          <Shareholding symbol={symbol} />
           <KeyStats symbol={symbol} className="flex-1" />
         </div>
       </div>
