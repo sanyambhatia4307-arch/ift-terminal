@@ -16,7 +16,7 @@ export function TickerTape() {
   const strip = [...items, ...items];
 
   return (
-    <div className="relative h-8 shrink-0 overflow-hidden border-b border-border bg-background">
+    <div className="ticker-mask relative h-8 shrink-0 overflow-hidden border-b border-border bg-background">
       <div
         className="flex h-full w-max items-center gap-6 px-4"
         style={{ animation: "ticker-scroll 90s linear infinite" }}

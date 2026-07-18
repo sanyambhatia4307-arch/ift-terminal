@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { Geist, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "@/app/providers";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { TickerTape } from "@/components/shell/TickerTape";
 import { TopBar } from "@/components/shell/TopBar";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${geist.variable} ${plexMono.variable}`}>
       <body className="font-sans antialiased">
         <Providers>
           <div className="flex h-screen flex-col overflow-hidden">

@@ -63,7 +63,7 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 6px);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
@@ -97,7 +97,7 @@ body::before {
   animation: aurora-drift 40s ease-in-out infinite alternate;
 }
 
-/* Faint precision grid · subtle terminal texture over the base */
+/* Faint precision grid + film grain · subtle terminal texture over the base */
 body::after {
   content: "";
   position: fixed;
@@ -105,9 +105,10 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
     linear-gradient(to right, oklch(0.9 0.02 250 / 0.022) 1px, transparent 1px),
     linear-gradient(to bottom, oklch(0.9 0.02 250 / 0.022) 1px, transparent 1px);
-  background-size: 44px 44px;
+  background-size: 180px 180px, 44px 44px, 44px 44px;
   mask-image: radial-gradient(120% 100% at 50% 0%, black 55%, transparent 100%);
 }
 
@@ -134,6 +135,56 @@ body::after {
 * {
   scrollbar-width: thin;
   scrollbar-color: oklch(0.4 0.02 262) transparent;
+}
+
+/* ---- Interaction layer ---- */
+
+/* Gold-tinted text selection */
+::selection {
+  background: color-mix(in oklab, var(--primary) 45%, transparent);
+  color: oklch(0.98 0.005 90);
+}
+
+/* Visible keyboard-focus ring (Tailwind preflight strips outlines) */
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 75%, transparent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Tailwind v4 defaults buttons to cursor:default · restore pointer + press physics */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+button:not(:disabled) {
+  transition: transform 0.1s ease-out;
+}
+button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Row tracking · hovering any data table softly highlights the row being read */
+tbody tr {
+  transition: background-color 0.15s ease-out;
+}
+tbody tr:hover {
+  background-color: color-mix(in oklab, var(--foreground) 4.5%, transparent);
+}
+
+/* Headings avoid orphaned words */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+/* Ticker tape · fade the strip edges and pause on hover to read */
+.ticker-mask {
+  mask-image: linear-gradient(90deg, transparent, black 28px, black calc(100% - 28px), transparent);
+}
+.ticker-mask:hover > div {
+  animation-play-state: paused;
 }
 
 /* Numeric cells */
