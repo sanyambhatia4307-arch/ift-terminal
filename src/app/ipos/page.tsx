@@ -151,7 +151,7 @@ function IpoStatHero({ ipos }: { ipos: IpoWithNews[] }) {
   ];
   return (
     <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[1.6fr_1fr]">
-      <div className="stagger grid auto-rows-fr grid-cols-2 gap-2">
+      <div className="stagger grid auto-rows-fr grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border">
         <StatTile label="In Pipeline" numeric={ipos.length} format={(n) => String(Math.round(n))} sub="tracked names" tone="primary" />
         <StatTile label="Favourable Setup" numeric={positive} format={(n) => String(Math.round(n))} sub="listing-gain lean" tone="bull" />
         <StatTile label="Caution Flagged" numeric={caution} format={(n) => String(Math.round(n))} sub="aggressive pricing/risk" tone="bear" />

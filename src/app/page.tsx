@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardMasthead } from "@/components/dashboard/DashboardMasthead";
 import { Heatmap } from "@/components/dashboard/Heatmap";
 import { IndicesGrid } from "@/components/dashboard/IndicesGrid";
 import { MarketMoodBand } from "@/components/dashboard/MarketMoodBand";
@@ -11,7 +12,8 @@ import { WatchlistStrip } from "@/components/dashboard/WatchlistStrip";
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-2 p-2">
+    <div className="space-y-2.5 p-2.5">
+      <DashboardMasthead />
       {/* Hero: live mood, breadth gauge, macro chips */}
       <MarketMoodBand />
       <WatchlistStrip />

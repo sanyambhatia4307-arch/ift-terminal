@@ -14,14 +14,11 @@ const TONE_TEXT: Record<Tone, string> = {
   primary: "text-primary",
 };
 
-const TONE_GLOW: Record<Tone, string> = {
-  bull: "color-mix(in oklab, var(--bull) 15%, transparent)",
-  bear: "color-mix(in oklab, var(--bear) 15%, transparent)",
-  neutral: "transparent",
-  primary: "color-mix(in oklab, var(--primary) 15%, transparent)",
-};
+/** Hairline-ruled metric grid · the wrapper for any group of StatTiles. */
+export const STAT_GRID =
+  "stagger grid gap-px overflow-hidden rounded-lg border border-border bg-border";
 
-/** A single KPI card: label, animated value, sub-line, optional sparkline. */
+/** One metric cell: small label, big number, quiet sub-line. Colour lives in the value only. */
 export function StatTile({
   label,
   value,
@@ -44,26 +41,14 @@ export function StatTile({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "panel-rise hover-glow surface-panel relative flex flex-col justify-center overflow-hidden rounded-sm border border-border px-2.5 py-2",
-        className
-      )}
-      style={{
-        background: `linear-gradient(180deg, ${TONE_GLOW[tone]}, transparent 72%), var(--card)`,
-      }}
-    >
-      <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className={cn("num mt-0.5 text-lg font-semibold leading-tight", TONE_TEXT[tone])}>
-        {numeric !== undefined && format ? (
-          <AnimatedNumber value={numeric} format={format} />
-        ) : (
-          value
-        )}
+    <div className={cn("panel-rise relative flex flex-col justify-center bg-card px-4 py-3.5", className)}>
+      <div className="text-[11.5px] text-muted-foreground">{label}</div>
+      <div className={cn("num mt-1.5 truncate text-[23px] font-semibold leading-none tracking-tight", TONE_TEXT[tone])}>
+        {numeric !== undefined && format ? <AnimatedNumber value={numeric} format={format} /> : value}
       </div>
-      {sub && <div className="num text-[10px] leading-tight text-muted-foreground">{sub}</div>}
+      {sub && <div className="num mt-2 truncate text-[10.5px] leading-tight text-muted-foreground">{sub}</div>}
       {spark && spark.length > 1 && (
-        <div className="mt-1 -mb-1">
+        <div className="mt-1.5 -mb-1">
           <Sparkline candles={spark} baseline={sparkBaseline} height={20} />
         </div>
       )}
@@ -71,7 +56,7 @@ export function StatTile({
   );
 }
 
-/** Responsive row of stat tiles with staggered entrance. */
+/** Responsive row of metrics separated by hairlines, like a terminal quote strip. */
 export function StatBand({
   children,
   cols = 4,
@@ -87,5 +72,5 @@ export function StatBand({
         : cols === 3
           ? "sm:grid-cols-3"
           : "sm:grid-cols-2 lg:grid-cols-4";
-  return <div className={cn("stagger grid grid-cols-2 gap-2", colClass)}>{children}</div>;
+  return <div className={cn(STAT_GRID, "grid-cols-2", colClass)}>{children}</div>;
 }

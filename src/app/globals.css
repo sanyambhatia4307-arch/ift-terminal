@@ -4,34 +4,34 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Institutional dark terminal · deep navy-black OLED base, gold + purple accents */
-  --background: oklch(0.17 0.022 264);
-  --foreground: oklch(0.93 0.012 250);
-  --card: oklch(0.215 0.024 262);
-  --card-foreground: oklch(0.93 0.012 250);
-  --popover: oklch(0.2 0.024 262);
-  --popover-foreground: oklch(0.94 0.012 250);
-  --primary: oklch(0.8 0.14 78);
-  --primary-foreground: oklch(0.17 0.02 264);
-  --secondary: oklch(0.255 0.022 262);
-  --secondary-foreground: oklch(0.88 0.012 250);
-  --muted: oklch(0.26 0.02 262);
-  --muted-foreground: oklch(0.68 0.022 255);
-  --accent: oklch(0.31 0.03 264);
-  --accent-foreground: oklch(0.95 0.01 250);
-  --cta: oklch(0.68 0.17 300);
-  --cta-foreground: oklch(0.97 0.01 300);
-  --destructive: oklch(0.64 0.2 25);
+  /* Graphite terminal · near-neutral base, one amber accent, paper-white type */
+  --background: oklch(0.155 0.005 255);
+  --foreground: oklch(0.945 0.006 85);
+  --card: oklch(0.188 0.006 255);
+  --card-foreground: oklch(0.945 0.006 85);
+  --popover: oklch(0.2 0.006 255);
+  --popover-foreground: oklch(0.95 0.006 85);
+  --primary: oklch(0.8 0.13 78);
+  --primary-foreground: oklch(0.16 0.01 255);
+  --secondary: oklch(0.222 0.006 255);
+  --secondary-foreground: oklch(0.9 0.006 85);
+  --muted: oklch(0.24 0.006 255);
+  --muted-foreground: oklch(0.665 0.01 255);
+  --accent: oklch(0.265 0.008 255);
+  --accent-foreground: oklch(0.96 0.006 85);
+  --cta: var(--primary);
+  --cta-foreground: var(--primary-foreground);
+  --destructive: oklch(0.64 0.19 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.36 0.022 262);
-  --input: oklch(0.33 0.02 262);
-  --ring: oklch(0.8 0.14 78);
+  --border: oklch(0.29 0.007 255);
+  --input: oklch(0.3 0.007 255);
+  --ring: oklch(0.8 0.13 78);
   --radius: 0.25rem;
 
-  /* Market semantics · brightened to pop on the dark base */
-  --bull: oklch(0.76 0.16 158);
-  --bear: oklch(0.68 0.2 23);
-  --flat: oklch(0.64 0.02 255);
+  /* Market semantics */
+  --bull: oklch(0.75 0.15 158);
+  --bear: oklch(0.67 0.19 24);
+  --flat: oklch(0.64 0.01 255);
 }
 
 @theme inline {
@@ -64,6 +64,7 @@
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 6px);
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), "Iowan Old Style", Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
@@ -72,57 +73,31 @@ html {
 }
 
 body {
-  /* Deep navy gradient · OLED-friendly, never flat black */
+  /* Flat graphite, lit softly from above */
   background:
-    linear-gradient(168deg,
-      oklch(0.185 0.026 268) 0%,
-      oklch(0.155 0.02 262) 46%,
-      oklch(0.175 0.024 286) 100%);
+    radial-gradient(110% 55% at 50% -12%, oklch(0.23 0.02 75 / 0.55), transparent 62%),
+    var(--background);
   background-attachment: fixed;
   color: var(--foreground);
   font-feature-settings: "tnum" 1, "cv05" 1;
 }
 
-/* Aurora depth · slow-drifting gold / cyan / purple glows for the neon-data feel */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -20%;
-  z-index: -2;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 30% at 16% 10%, oklch(0.7 0.16 300 / 0.16), transparent 70%),
-    radial-gradient(34% 28% at 86% 16%, oklch(0.74 0.13 210 / 0.13), transparent 70%),
-    radial-gradient(42% 34% at 74% 92%, oklch(0.8 0.15 78 / 0.12), transparent 70%);
-  animation: aurora-drift 40s ease-in-out infinite alternate;
-}
 
-/* Faint precision grid + film grain · subtle terminal texture over the base */
+/* Film grain · breaks digital flatness */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
-    linear-gradient(to right, oklch(0.9 0.02 250 / 0.022) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.9 0.02 250 / 0.022) 1px, transparent 1px);
-  background-size: 180px 180px, 44px 44px, 44px 44px;
-  mask-image: radial-gradient(120% 100% at 50% 0%, black 55%, transparent 100%);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
 
-@keyframes aurora-drift {
-  from { transform: translate3d(-2%, -1%, 0) scale(1); }
-  to { transform: translate3d(2%, 2%, 0) scale(1.06); }
-}
 
-/* Gradient display text for brand / page titles · bright on dark */
+/* Brand text · solid amber, no rainbow gradient */
 .text-gradient {
-  background: linear-gradient(100deg, oklch(0.84 0.15 80), oklch(0.74 0.13 215) 55%, oklch(0.72 0.18 302));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--primary);
 }
 
 /* Module-tinted row hovers: panels expose --tone; links inside pick it up */
@@ -206,13 +181,10 @@ h3 {
 
 /* Lifted glass panel · faint top highlight + depth shadow on the dark base */
 .surface-panel {
-  background:
-    linear-gradient(180deg, oklch(0.255 0.024 262 / 0.5), oklch(0.21 0.022 262 / 0.92));
-  backdrop-filter: blur(6px);
+  background: var(--card);
   box-shadow:
-    inset 0 1px 0 0 oklch(0.95 0.02 250 / 0.06),
-    0 1px 2px 0 oklch(0.1 0.02 264 / 0.5),
-    0 12px 28px -18px oklch(0.05 0.02 264 / 0.8);
+    inset 0 1px 0 0 oklch(1 0 0 / 0.035),
+    0 1px 0 0 oklch(0 0 0 / 0.35);
 }
 
 /* ---- Motion system ---- */
@@ -283,10 +255,14 @@ h3 {
   .bar-grow {
     animation: none !important;
   }
-  body::before {
-    animation: none !important;
-  }
   [style*="ticker-scroll"] {
     animation: none !important;
   }
+}
+
+/* Editorial serif for page mastheads and hero numbers' captions */
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }

@@ -130,7 +130,7 @@ export default function PortfolioPage() {
 
       {holdings.length > 0 && (
         <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[1.6fr_1fr]">
-          <div className="stagger grid auto-rows-fr grid-cols-2 gap-2">
+          <div className="stagger grid auto-rows-fr grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border">
             <StatTile label="Invested" numeric={totalInvested} format={fmtInrCompact} tone="neutral" />
             <StatTile label="Current Value" numeric={totalValue} format={fmtInrCompact} tone="primary" />
             <StatTile

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, IBM_Plex_Mono } from "next/font/google";
+import { Geist, IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
 import { Providers } from "@/app/providers";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { TickerTape } from "@/components/shell/TickerTape";
@@ -7,6 +7,12 @@ import { TopBar } from "@/components/shell/TopBar";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const serif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
+});
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -23,12 +29,12 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#15182a",
+  themeColor: "#161719",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${geist.variable} ${plexMono.variable} ${serif.variable}`}>
       <body className="font-sans antialiased">
         <Providers>
           <div className="flex h-screen flex-col overflow-hidden">

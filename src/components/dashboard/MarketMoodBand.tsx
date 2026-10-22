@@ -73,19 +73,15 @@ export function MarketMoodBand() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(60% 120% at 0% 0%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 60%), radial-gradient(50% 120% at 100% 100%, color-mix(in oklab, oklch(0.7 0.15 258) 14%, transparent), transparent 55%)",
+            "radial-gradient(55% 120% at 0% 0%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 60%)",
         }}
       />
       <div className="relative grid grid-cols-1 gap-4 p-3 lg:grid-cols-[1.5fr_0.9fr_1.1fr]">
         {/* NIFTY + intraday area */}
         <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
-            <span className="num rounded-[2px] bg-primary/15 px-1 py-px text-[9px] font-semibold tracking-widest text-primary">
-              MOOD
-            </span>
-            <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Live Market Snapshot
-            </span>
+            <span className="text-[12.5px] font-medium tracking-[-0.005em] text-foreground/90">Live market snapshot</span>
+            <span className="num text-[9.5px] tracking-[0.14em] text-muted-foreground/45">MOOD</span>
           </div>
           {nifty && (
             <Link href="/stock/NIFTY 50" className="group mt-1 flex items-baseline gap-3">
@@ -151,7 +147,7 @@ function Chip({
 }) {
   return (
     <div className="rounded-sm border border-border bg-background/50 px-2 py-1">
-      <div className="text-[8.5px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-[10.5px] text-muted-foreground">{label}</div>
       <div className="num truncate text-xs font-medium">{value}</div>
       <div className={cn("num text-[9px]", tone === "bull" ? "text-bull" : tone === "bear" ? "text-bear" : "text-muted-foreground")}>
         {sub}

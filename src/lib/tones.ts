@@ -19,35 +19,13 @@ export const TONE = {
 
 export type ToneName = keyof typeof TONE;
 
-const CODE_TONES: Record<string, ToneName> = {
-  // Overview & indices
-  HOME: "amber", IDX: "amber", CHRT: "amber", LVLS: "amber", CMDT: "amber", PREC: "amber",
-  // Markets & breadth
-  MKT: "blue", ALLX: "blue", BRDT: "blue", FUND: "blue", BASE: "blue", NWS: "blue", NEWS: "blue", HELP: "blue", TERM: "blue",
-  // Pulse / macro / comparison
-  PULS: "cyan", SECT: "cyan", COMP: "cyan", PERF: "cyan", FX: "cyan", DATA: "cyan",
-  ROTN: "cyan", RRG: "cyan",
-  // Intelligence & earnings
-  INTL: "violet", ENGN: "violet", PICK: "violet", EARN: "violet", ARCH: "violet",
-  SCRN: "violet", RANK: "violet", FILT: "cyan", EST: "violet",
-  // Trading
-  INTR: "green", PLAN: "green", GAIN: "green", OPTS: "orange",
-  SHLD: "teal",
-  LOSE: "red",
-  DEAL: "orange", ENRG: "orange",
-  // Personal
-  PORT: "teal", HOLD: "teal", WL: "teal", WLST: "teal", ETF: "teal", READ: "teal",
-  RISK: "red", SIGS: "amber", ALRT: "orange", FIN: "blue", PEER: "cyan",
-  // IPO
-  IPO: "pink",
-};
+/**
+ * Chrome (panel chips, page headers, nav) is deliberately monochrome: one
+ * amber accent everywhere. Distinct hues are reserved for data, where colour
+ * carries meaning (TONE above, used by charts, donuts and sector bars).
+ */
+export const ACCENT = "oklch(0.8 0.13 78)";
 
-const FALLBACK: ToneName[] = ["amber", "cyan", "violet", "teal", "blue", "pink"];
-
-export function toneFor(code?: string): string {
-  if (!code) return TONE.amber;
-  const named = CODE_TONES[code.toUpperCase()];
-  if (named) return TONE[named];
-  const hash = [...code].reduce((a, c) => a + c.charCodeAt(0), 0);
-  return TONE[FALLBACK[hash % FALLBACK.length]];
+export function toneFor(_code?: string): string {
+  return ACCENT;
 }
