@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GUIDE_ITEM, NAV_GROUPS, isActive, type NavItem } from "@/components/shell/nav-items";
+import { NAV_GROUPS, REFERENCE_ITEMS, isActive, type NavItem } from "@/components/shell/nav-items";
 import { cn } from "@/lib/utils";
 
 function NavLink({ item, onNavigate, size }: { item: NavItem; onNavigate?: () => void; size: "sm" | "lg" }) {
@@ -41,8 +41,10 @@ export function NavList({ onNavigate, size = "sm" }: { onNavigate?: () => void; 
           ))}
         </div>
       ))}
-      <div className="border-t border-border/60 pt-3">
-        <NavLink item={GUIDE_ITEM} onNavigate={onNavigate} size={size} />
+      <div className="flex flex-col gap-px border-t border-border/60 pt-3">
+        {REFERENCE_ITEMS.map((item) => (
+          <NavLink key={item.href} item={item} onNavigate={onNavigate} size={size} />
+        ))}
       </div>
     </nav>
   );

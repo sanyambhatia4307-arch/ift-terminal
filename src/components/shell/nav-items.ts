@@ -11,6 +11,7 @@ import {
   Newspaper,
   Radar,
   Rocket,
+  Sigma,
   Telescope,
 } from "lucide-react";
 
@@ -57,8 +58,12 @@ export const NAV_GROUPS: Array<{ label: string; items: NavItem[] }> = [
 ];
 
 export const GUIDE_ITEM: NavItem = { href: "/guide", label: "Guide", icon: BookOpen };
+export const METHOD_ITEM: NavItem = { href: "/methodology", label: "Methodology", icon: Sigma };
 
-export const NAV: NavItem[] = [...NAV_GROUPS.flatMap((g) => g.items), GUIDE_ITEM];
+/** Reference pages shown below the main groups. */
+export const REFERENCE_ITEMS: NavItem[] = [GUIDE_ITEM, METHOD_ITEM];
+
+export const NAV: NavItem[] = [...NAV_GROUPS.flatMap((g) => g.items), ...REFERENCE_ITEMS];
 
 export function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);

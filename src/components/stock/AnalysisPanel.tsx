@@ -181,7 +181,7 @@ export function AnalysisPanel({ symbol }: { symbol: string }) {
           <p className="text-[9px] leading-snug text-muted-foreground">
             Transparent multi-pillar scoring from free public data · every number above is
             explainable (hover a pillar).{" "}
-            <Link href="/guide" className="text-primary hover:underline">
+            <Link href="/methodology#score" className="text-primary hover:underline">
               Methodology →
             </Link>{" "}
             Not investment advice.

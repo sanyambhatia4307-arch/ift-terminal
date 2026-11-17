@@ -1,4 +1,5 @@
 import { BookOpen } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Panel } from "@/components/ui/panel";
 
@@ -271,6 +272,14 @@ export default function GuidePage() {
               way around.
             </p>
             <SectionTable headers={["Pillar", "What feeds it", "How to read it"]} rows={PILLARS} />
+            <p className="mt-2 text-[11.5px] text-muted-foreground">
+              Every threshold and formula behind these pillars, and every other calculation on the
+              terminal, is listed on the{" "}
+              <Link href="/methodology" className="text-primary hover:underline">
+                Methodology page
+              </Link>
+              .
+            </p>
           </div>
         </Panel>
 
